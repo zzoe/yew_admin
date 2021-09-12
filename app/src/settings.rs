@@ -1,26 +1,26 @@
 use yew::prelude::*;
 
-pub struct Home {
-    pub props: HomeProps,
+pub struct Settings {
+    pub props: SettingsProps,
     pub link: ComponentLink<Self>,
     pub label: String,
 }
 
 #[derive(Clone, Debug, Properties, PartialEq)]
-pub struct HomeProps {
+pub struct SettingsProps {
     #[prop_or_default]
     pub children: Children,
 }
 
-impl Component for Home {
+impl Component for Settings {
     type Message = ();
-    type Properties = HomeProps;
+    type Properties = SettingsProps;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         Self {
             props,
             link,
-            label: "Specific".to_owned(),
+            label: "Settings".to_owned(),
         }
     }
 
@@ -39,7 +39,7 @@ impl Component for Home {
 
     fn view(&self) -> Html {
         html! {
-            <div class="columns">
+            <div class="columns is-expanded">
                 <div class="column is-narrow">
                     <div class="box">
                         <aside class="menu">
@@ -63,6 +63,39 @@ impl Component for Home {
                             </ul>
                             <p class="menu-label">{"Transactions"}</p>
                             <ul class="menu-list">
+                                <li><a>{"Payments"}</a></li>
+                                <li><a>{"Transfers"}</a></li>
+                                <li><a>{"Balance"}</a></li>
+                                <li><a>{"Payments"}</a></li>
+                                <li><a>{"Transfers"}</a></li>
+                                <li><a>{"Balance"}</a></li>
+                                <li><a>{"Payments"}</a></li>
+                                <li><a>{"Transfers"}</a></li>
+                                <li><a>{"Balance"}</a></li>
+                                <li><a>{"Payments"}</a></li>
+                                <li><a>{"Transfers"}</a></li>
+                                <li><a>{"Balance"}</a></li>
+                                <li><a>{"Payments"}</a></li>
+                                <li><a>{"Transfers"}</a></li>
+                                <li><a>{"Balance"}</a></li>
+                                <li><a>{"Payments"}</a></li>
+                                <li><a>{"Transfers"}</a></li>
+                                <li><a>{"Balance"}</a></li>
+                                <li><a>{"Payments"}</a></li>
+                                <li><a>{"Transfers"}</a></li>
+                                <li><a>{"Balance"}</a></li>
+                                <li><a>{"Payments"}</a></li>
+                                <li><a>{"Transfers"}</a></li>
+                                <li><a>{"Balance"}</a></li>
+                                <li><a>{"Payments"}</a></li>
+                                <li><a>{"Transfers"}</a></li>
+                                <li><a>{"Balance"}</a></li>
+                                <li><a>{"Payments"}</a></li>
+                                <li><a>{"Transfers"}</a></li>
+                                <li><a>{"Balance"}</a></li>
+                                <li><a>{"Payments"}</a></li>
+                                <li><a>{"Transfers"}</a></li>
+                                <li><a>{"Balance"}</a></li>
                                 <li><a>{"Payments"}</a></li>
                                 <li><a>{"Transfers"}</a></li>
                                 <li><a>{"Balance"}</a></li>

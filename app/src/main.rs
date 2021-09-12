@@ -1,31 +1,59 @@
 use yew::prelude::*;
+use yew_router::prelude::*;
 
 use home::Home;
+use settings::Settings;
 
-pub mod home;
+mod home;
+mod settings;
 
-enum Msg {
-    AddOne,
-}
+// enum Msg {
+//     AddOne,
+// }
 
 struct App {
     // `ComponentLink` is like a reference to a component.
-    // It can be used to send messages to the component
-    link: ComponentLink<Self>,
+// It can be used to send messages to the component
+// link: ComponentLink<Self>,
+}
+
+#[derive(Switch, Clone, Debug)]
+enum AppRoute {
+    #[to = "/home"]
+    Home,
+    #[to = "/settings"]
+    Settings,
+    #[to = "/"]
+    Welcome,
+}
+
+fn switch(routes: AppRoute) -> Html {
+    match routes {
+        AppRoute::Home => html! {
+            <Home />
+        },
+        AppRoute::Settings => html! {
+            <Settings />
+        },
+        AppRoute::Welcome => html! {
+            <p class="has-text-centered is-size-1">{"Welcome!"}</p>
+        },
+    }
 }
 
 impl Component for App {
-    type Message = Msg;
+    type Message = ();
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self { link }
+    fn create(_props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+        Self {}
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Msg::AddOne => true,
-        }
+    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
+        // match msg {
+        //     Msg::AddOne => true,
+        // }
+        false
     }
 
     fn change(&mut self, _props: Self::Properties) -> ShouldRender {
@@ -33,12 +61,20 @@ impl Component for App {
     }
 
     fn view(&self) -> Html {
+        // let onkeypress = self.link.batch_callback(|event| {
+        //     if event.key() == "Enter" {
+        //         Some(Msg::Submit)
+        //     } else {
+        //         None
+        //     }
+        // });
+
         html! {
             <>
-            <nav class="navbar" role="navigation" aria-label="main navigation">
+            <nav class="navbar px-6 py-5" role="navigation" aria-label="main navigation">
               <div class="navbar-brand">
-                <a class="navbar-item" href="https://bulma.io">
-                  <img src="https://bulma.io/images/bulma-logo.png" width="112" height="28" />
+                <a class="navbar-item" href="http://127.0.0.1:8080">
+                  <img src="resource/rustacean-flat-happy.svg" width="112" height="28" />
                 </a>
 
                 <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
@@ -50,13 +86,12 @@ impl Component for App {
 
               <div id="navbarBasicExample" class="navbar-menu">
                 <div class="navbar-start">
-                  <a class="navbar-item">
-                    {"Home"}
-                  </a>
-
-                  <a class="navbar-item">
-                    {"Documentation"}
-                  </a>
+                    <RouterAnchor<AppRoute> classes={"navbar-item"} route={AppRoute::Home}>
+                        { "Home" }
+                    </RouterAnchor<AppRoute>>
+                    <RouterAnchor<AppRoute> classes={"navbar-item"} route={AppRoute::Settings}>
+                        {"Settings"}
+                    </RouterAnchor<AppRoute>>
 
                   <div class="navbar-item has-dropdown is-hoverable">
                     <a class="navbar-link">
@@ -95,34 +130,16 @@ impl Component for App {
                 </div>
               </div>
             </nav>
-            <Home />
-            <footer class="footer">
-              <div class="content has-text-centered">
-                <p>
-                  <strong>{"Bulma"}</strong>{" by "}<a href="https://jgthms.com">{"Jeremy Thomas"}</a>{". The source code is licensed"}
-                  <a href="http://opensource.org/licenses/mit-license.php">{"MIT"}</a>{". The website content
-                  is licensed "}<a href="http://creativecommons.org/licenses/by-nc-sa/4.0/">{"CC BY NC SA 4.0"}</a>{"."}
-                </p>
-              </div>
-            </footer>
 
-            // <section class="hero is-fullheight">
-            //   // <!-- Hero head: will stick at the top -->
-            //   <div class="hero-head">
-            //
-            //   </div>
-            //
-            //   // <!-- Hero content: will be in the middle -->
-            //   <div class="hero-body p-0">
-            //     // <div class="container has-text-centered">
-            //     // </div>
-            //   </div>
-            //
-            //   // <!-- Hero footer: will stick at the bottom -->
-            //   <div class="hero-foot">
-            //
-            //   </div>
-            // </section>
+            <main>
+                <Router<AppRoute, ()> render=Router::render(switch) />
+            </main>
+
+            <footer class="footer px-6 py-5">
+                <div class="content has-text-centered">
+                  <p>{"zoe © www.zoe.zz 鄂ICP备19880211号"}</p>
+                </div>
+            </footer>
             </>
         }
     }
