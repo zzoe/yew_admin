@@ -8,7 +8,7 @@ use crate::components::menu::{Menu, MenuFold, MenuItem, MenuLabel, MenuNode};
 pub struct Home {
     pub props: HomeProps,
     pub link: ComponentLink<Self>,
-    pub labels: Rc<RefCell<Vec<Rc<RefCell<MenuLabel>>>>>,
+    pub labels: Rc<Vec<Rc<RefCell<MenuLabel>>>>,
 }
 
 #[derive(Clone, Debug, Properties, PartialEq)]
@@ -22,9 +22,10 @@ impl Component for Home {
     type Properties = HomeProps;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let labels = Rc::new(RefCell::new(vec![
+        let labels = Rc::new(vec![
             Rc::new(RefCell::new(MenuLabel {
                 label_text: "label_1".to_string(),
+                expanded: false,
                 menu_list: vec![
                     Rc::new(RefCell::new(MenuNode::Item(MenuItem {
                         is_active: false,
@@ -38,6 +39,7 @@ impl Component for Home {
             })),
             Rc::new(RefCell::new(MenuLabel {
                 label_text: "Administration".to_string(),
+                expanded: false,
                 menu_list: vec![
                     Rc::new(RefCell::new(MenuNode::Item(MenuItem {
                         is_active: false,
@@ -90,7 +92,7 @@ impl Component for Home {
                     }))),
                 ],
             })),
-        ]));
+        ]);
 
         Self {
             props,

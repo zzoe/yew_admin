@@ -11,12 +11,13 @@ pub struct Menu {
 #[derive(Properties, PartialEq, Clone)]
 pub struct MenuProps {
     #[prop_or_default]
-    pub labels: Rc<RefCell<Vec<Rc<RefCell<MenuLabel>>>>>,
+    pub labels: Rc<Vec<Rc<RefCell<MenuLabel>>>>,
 }
 
 #[derive(Default, PartialEq, Clone)]
 pub struct MenuLabel {
     pub label_text: String,
+    pub expanded: bool,
     pub menu_list: Vec<Rc<RefCell<MenuNode>>>,
 }
 
@@ -47,30 +48,29 @@ pub struct MenuItem {
 }
 
 pub enum Msg {
-    MenuItemClicked,
+    Clicked,
 }
 
 impl Component for Menu {
-    type Message = Msg;
+    type Message = ();
     type Properties = MenuProps;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         Self { props, link }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Msg::MenuItemClicked => true,
-        }
-    }
-
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
+    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
         false
     }
 
+    fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        self.props.ne(&props)
+    }
+
     fn view(&self) -> Html {
-        let labels = self.props.labels.borrow();
-        let views = labels
+        let views = self
+            .props
+            .labels
             .iter()
             .map(|label| {
                 html! {
@@ -78,6 +78,7 @@ impl Component for Menu {
                 }
             })
             .collect::<Html>();
+
         html! {
         <aside class="menu">
             {views}
@@ -107,7 +108,11 @@ impl Component for Label {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::MenuItemClicked => true,
+            Msg::Clicked => {
+                let mut label = self.props.label.borrow_mut();
+                label.expanded = !label.expanded;
+                true
+            }
         }
     }
 
@@ -117,21 +122,32 @@ impl Component for Label {
 
     fn view(&self) -> Html {
         let label = self.props.label.borrow();
-        let views = label
-            .menu_list
-            .iter()
-            .map(|node| {
-                html! {
-                    <Node node=node />
-                }
-            })
-            .collect::<Html>();
-        html! {
-        <>
-        <a class="menu-label">{&*label.label_text}</a>
+        let views = if label.expanded {
+            let views = label
+                .menu_list
+                .iter()
+                .map(|node| {
+                    html! {
+                        <Node node=node />
+                    }
+                })
+                .collect::<Html>();
+
+            html!(
             <ul class="menu-list">
                 { views }
             </ul>
+            )
+        } else {
+            html! {}
+        };
+
+        let click_cb = self.link.callback(|_| Msg::Clicked);
+
+        html! {
+        <>
+        <p class="menu-label" onclick=click_cb>{&*label.label_text}</p>
+            {views}
         </>
         }
     }
@@ -158,7 +174,13 @@ impl Component for Node {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::MenuItemClicked => true,
+            Msg::Clicked => {
+                match &mut *self.props.node.borrow_mut() {
+                    MenuNode::Item(item) => item.is_active = !item.is_active,
+                    MenuNode::Fold(fold) => fold.expanded = !fold.expanded,
+                }
+                true
+            }
         }
     }
 
@@ -168,23 +190,34 @@ impl Component for Node {
 
     fn view(&self) -> Html {
         let node = &*self.props.node.borrow();
+        let click_cb = self.link.callback(|_| Msg::Clicked);
         let views = match node {
             MenuNode::Item(item) => html! {
-                <li><a class=classes!(item.is_active.then(||"is-active"))>{&*item.item_text}</a></li>
+                <li>
+                    <a class=classes!(item.is_active.then(||"is-active")) onclick=click_cb>
+                        {&*item.item_text}
+                    </a>
+                </li>
             },
             MenuNode::Fold(fold) => {
-                let views = fold
-                    .nodes
-                    .iter()
-                    .map(|node| {
-                        html! {
-                            <Node node=node />
-                        }
-                    })
-                    .collect::<Html>();
+                let views = if fold.expanded {
+                    fold.nodes
+                        .iter()
+                        .map(|node| {
+                            html! {
+                                <Node node=node />
+                            }
+                        })
+                        .collect::<Html>()
+                } else {
+                    html! {}
+                };
+
                 html! {
                     <li>
-                        <a class=classes!(fold.is_active.then(||"is-active"))>{&*fold.fold_text}</a>
+                        <a class=classes!(fold.is_active.then(||"is-active")) onclick=click_cb>
+                            {&*fold.fold_text}
+                        </a>
                         <ul>
                             { views }
                         </ul>
