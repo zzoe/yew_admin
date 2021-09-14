@@ -1,9 +1,14 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use yew::prelude::*;
+
+use crate::components::menu::{Menu, MenuFold, MenuItem, MenuLabel, MenuNode};
 
 pub struct Home {
     pub props: HomeProps,
     pub link: ComponentLink<Self>,
-    pub label: String,
+    pub labels: Rc<RefCell<Vec<Rc<RefCell<MenuLabel>>>>>,
 }
 
 #[derive(Clone, Debug, Properties, PartialEq)]
@@ -17,10 +22,80 @@ impl Component for Home {
     type Properties = HomeProps;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        let labels = Rc::new(RefCell::new(vec![
+            Rc::new(RefCell::new(MenuLabel {
+                label_text: "label_1".to_string(),
+                menu_list: vec![
+                    Rc::new(RefCell::new(MenuNode::Item(MenuItem {
+                        is_active: false,
+                        item_text: "Dashboard".to_string(),
+                    }))),
+                    Rc::new(RefCell::new(MenuNode::Item(MenuItem {
+                        is_active: false,
+                        item_text: "Customers".to_string(),
+                    }))),
+                ],
+            })),
+            Rc::new(RefCell::new(MenuLabel {
+                label_text: "Administration".to_string(),
+                menu_list: vec![
+                    Rc::new(RefCell::new(MenuNode::Item(MenuItem {
+                        is_active: false,
+                        item_text: "Team Settings".to_string(),
+                    }))),
+                    Rc::new(RefCell::new(MenuNode::Fold(MenuFold {
+                        is_active: false,
+                        expanded: true,
+                        fold_text: "Manage Your Team".to_string(),
+                        nodes: vec![
+                            Rc::new(RefCell::new(MenuNode::Item(MenuItem {
+                                is_active: false,
+                                item_text: "Projects".to_string(),
+                            }))),
+                            Rc::new(RefCell::new(MenuNode::Item(MenuItem {
+                                is_active: false,
+                                item_text: "Members".to_string(),
+                            }))),
+                            Rc::new(RefCell::new(MenuNode::Fold(MenuFold {
+                                is_active: false,
+                                expanded: true,
+                                fold_text: "Manage Your Team".to_string(),
+                                nodes: vec![
+                                    Rc::new(RefCell::new(MenuNode::Item(MenuItem {
+                                        is_active: false,
+                                        item_text: "Projects".to_string(),
+                                    }))),
+                                    Rc::new(RefCell::new(MenuNode::Item(MenuItem {
+                                        is_active: true,
+                                        item_text: "Members".to_string(),
+                                    }))),
+                                    Rc::new(RefCell::new(MenuNode::Fold(MenuFold {
+                                        is_active: false,
+                                        expanded: false,
+                                        fold_text: "Manage Your Team".to_string(),
+                                        nodes: vec![
+                                            Rc::new(RefCell::new(MenuNode::Item(MenuItem {
+                                                is_active: false,
+                                                item_text: "Projects".to_string(),
+                                            }))),
+                                            Rc::new(RefCell::new(MenuNode::Item(MenuItem {
+                                                is_active: false,
+                                                item_text: "Members".to_string(),
+                                            }))),
+                                        ],
+                                    }))),
+                                ],
+                            }))),
+                        ],
+                    }))),
+                ],
+            })),
+        ]));
+
         Self {
             props,
             link,
-            label: "Specific".to_owned(),
+            labels,
         }
     }
 
@@ -38,36 +113,12 @@ impl Component for Home {
     }
 
     fn view(&self) -> Html {
+        let labels = Rc::clone(&self.labels);
         html! {
             <div class="columns">
                 <div class="column is-narrow">
                     <div class="box">
-                        <aside class="menu">
-                            <p class="menu-label">{&*self.label}</p>
-                            <ul class="menu-list">
-                                <li><a>{"Dashboard"}</a></li>
-                                <li><a>{"Customers"}</a></li>
-                            </ul>
-                            <p class="menu-label">{"Administration"}</p>
-                            <ul class="menu-list">
-                                <li><a>{"Team Settings"}</a></li>
-                                <li>
-                                    <a class="is-active">{"Manage Your Team"}</a>
-                                    <ul>
-                                        <li><a>{"Members"}</a></li>
-                                        <li><a>{"Plugins"}</a></li>
-                                        <li><a>{"Add a member"}</a></li>
-                                    </ul>
-                                </li>
-                                <li><a>{"Invitations"}</a></li>
-                            </ul>
-                            <p class="menu-label">{"Transactions"}</p>
-                            <ul class="menu-list">
-                                <li><a>{"Payments"}</a></li>
-                                <li><a>{"Transfers"}</a></li>
-                                <li><a>{"Balance"}</a></li>
-                            </ul>
-                        </aside>
+                        <Menu labels=labels />
                     </div>
                 </div>
                 <div class="column">

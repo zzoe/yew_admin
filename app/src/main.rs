@@ -1,11 +1,11 @@
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-use home::Home;
-use settings::Settings;
+use pages::home::Home;
+use pages::settings::Settings;
 
-mod home;
-mod settings;
+mod pages;
+mod components;
 
 enum Msg {
     BuggerClick,
