@@ -4,8 +4,9 @@ use yew_router::prelude::*;
 use pages::home::Home;
 use pages::settings::Settings;
 
-mod pages;
 mod components;
+mod pages;
+mod util;
 
 enum Msg {
     BuggerClick,
