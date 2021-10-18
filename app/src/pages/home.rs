@@ -9,7 +9,7 @@ use crate::util::neq_assign;
 pub struct Home {
     pub props: HomeProps,
     pub link: ComponentLink<Self>,
-    pub labels: Rc<Vec<Rc<RefCell<MenuLabel>>>>,
+    pub menu: Rc<Vec<Rc<RefCell<MenuNode>>>>,
 }
 
 #[derive(Clone, Debug, Properties, PartialEq)]
@@ -23,12 +23,12 @@ impl Component for Home {
     type Properties = HomeProps;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let labels = Rc::new(vec![
-            Rc::new(RefCell::new(MenuLabel {
+        let menu = Rc::new(vec![
+            Rc::new(RefCell::new(MenuNode::Label(MenuLabel {
                 id: 1,
                 label_text: "label_1".to_string(),
                 expanded: true,
-                menu_list: vec![
+                nodes: vec![
                     Rc::new(RefCell::new(MenuNode::Item(MenuItem {
                         id: 2,
                         is_active: false,
@@ -40,12 +40,12 @@ impl Component for Home {
                         item_text: "Customers".to_string(),
                     }))),
                 ],
-            })),
-            Rc::new(RefCell::new(MenuLabel {
+            }))),
+            Rc::new(RefCell::new(MenuNode::Label(MenuLabel {
                 id: 4,
                 label_text: "Administration".to_string(),
                 expanded: true,
-                menu_list: vec![
+                nodes: vec![
                     Rc::new(RefCell::new(MenuNode::Item(MenuItem {
                         id: 5,
                         is_active: false,
@@ -106,14 +106,10 @@ impl Component for Home {
                         ],
                     }))),
                 ],
-            })),
+            }))),
         ]);
 
-        Self {
-            props,
-            link,
-            labels,
-        }
+        Self { props, link, menu }
     }
 
     fn update(&mut self, _msg: Self::Message) -> ShouldRender {
@@ -125,12 +121,11 @@ impl Component for Home {
     }
 
     fn view(&self) -> Html {
-        let labels = Rc::clone(&self.labels);
         html! {
             <div class="columns">
                 <div class="column is-narrow">
                     <div class="box">
-                        <Menu labels=labels />
+                        <Menu nodes=&self.menu />
                     </div>
                 </div>
                 <div class="column">

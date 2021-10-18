@@ -13,6 +13,7 @@ pub fn neq_assign<T: PartialEq>(mut_props: &mut T, props: T) -> bool {
     }
 }
 
+#[derive(Debug)]
 pub struct WeakComponentLink<COMP: Component>(Rc<RefCell<Option<ComponentLink<COMP>>>>);
 
 impl<COMP: Component> Clone for WeakComponentLink<COMP> {
