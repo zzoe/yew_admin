@@ -1,222 +1,48 @@
-use std::cell::RefCell;
-use std::rc::Rc;
+use yew::html::Scope;
+use yew::{html, Component, Context, Html, Properties};
 
-use yew::{classes, html, Component, ComponentLink, Html, Properties, ShouldRender};
-
-pub struct Menu {
-    pub props: MenuProps,
-    pub link: ComponentLink<Self>,
+pub enum MenuProp {
+    Label(MenuNode),
+    Fold(MenuNode),
+    Item(MenuNode),
 }
 
-#[derive(Properties, PartialEq, Clone)]
-pub struct MenuProps {
-    #[prop_or_default]
-    pub labels: Rc<Vec<Rc<RefCell<MenuLabel>>>>,
-}
-
-#[derive(Default, PartialEq, Clone)]
-pub struct MenuLabel {
-    pub label_text: String,
-    pub expanded: bool,
-    pub menu_list: Vec<Rc<RefCell<MenuNode>>>,
-}
-
-#[derive(PartialEq, Clone)]
-pub enum MenuNode {
-    Item(MenuItem),
-    Fold(MenuFold),
-}
-
-impl Default for MenuNode {
-    fn default() -> Self {
-        Self::Item(MenuItem::default())
-    }
-}
-
-#[derive(Default, PartialEq, Clone)]
-pub struct MenuFold {
-    pub is_active: bool,
-    pub expanded: bool,
-    pub fold_text: String,
-    pub nodes: Vec<Rc<RefCell<MenuNode>>>,
-}
-
-#[derive(Default, PartialEq, Clone)]
-pub struct MenuItem {
-    pub is_active: bool,
-    pub item_text: String,
-}
-
-pub enum Msg {
-    Clicked,
-}
-
-impl Component for Menu {
-    type Message = ();
-    type Properties = MenuProps;
-
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self { props, link }
-    }
-
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
-        false
-    }
-
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.props.ne(&props)
-    }
-
-    fn view(&self) -> Html {
-        let views = self
-            .props
-            .labels
-            .iter()
-            .map(|label| {
-                html! {
-                    <Label label=label />
-                }
-            })
-            .collect::<Html>();
-
-        html! {
-        <aside class="menu">
-            {views}
-        </aside>
-        }
-    }
-}
-
-#[derive(Properties, PartialEq, Clone)]
-pub struct LabelProps {
-    #[prop_or_default]
-    pub label: Rc<RefCell<MenuLabel>>,
-}
-
-pub struct Label {
-    pub props: LabelProps,
-    pub link: ComponentLink<Self>,
-}
-
-impl Component for Label {
-    type Message = Msg;
-    type Properties = LabelProps;
-
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self { props, link }
-    }
-
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Msg::Clicked => {
-                let mut label = self.props.label.borrow_mut();
-                label.expanded = !label.expanded;
-                true
-            }
-        }
-    }
-
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.props.ne(&props)
-    }
-
-    fn view(&self) -> Html {
-        let label = self.props.label.borrow();
-        let views = if label.expanded {
-            let views = label
-                .menu_list
-                .iter()
-                .map(|node| {
+impl MenuProp {
+    fn view(&self, link: &Scope<Menu>) -> Html {
+        let onclick = link.callback(|_| Msg::Clicked);
+        match self {
+            MenuProp::Label(node) => {
+                let views = if node.expanded {
                     html! {
-                        <Node node=node />
+                    <ul class="menu-list">
+                        { node.children.iter().map(|child| child.view(link)).collect::<Html>() }
+                    </ul>
                     }
-                })
-                .collect::<Html>();
+                } else {
+                    html! {}
+                };
 
-            html!(
-            <ul class="menu-list">
-                { views }
-            </ul>
-            )
-        } else {
-            html! {}
-        };
-
-        let click_cb = self.link.callback(|_| Msg::Clicked);
-
-        html! {
-        <>
-        <p class="menu-label" onclick=click_cb>{&*label.label_text}</p>
-            {views}
-        </>
-        }
-    }
-}
-
-#[derive(Properties, PartialEq, Clone)]
-pub struct NodeProps {
-    #[prop_or_default]
-    pub node: Rc<RefCell<MenuNode>>,
-}
-
-pub struct Node {
-    pub props: NodeProps,
-    pub link: ComponentLink<Self>,
-}
-
-impl Component for Node {
-    type Message = Msg;
-    type Properties = NodeProps;
-
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self { props, link }
-    }
-
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Msg::Clicked => {
-                match &mut *self.props.node.borrow_mut() {
-                    MenuNode::Item(item) => item.is_active = !item.is_active,
-                    MenuNode::Fold(fold) => fold.expanded = !fold.expanded,
+                html! {
+                    <>
+                    <div class="menu-label" {onclick}> {&*node.text} </div>
+                    {views}
+                    </>
                 }
-                true
             }
-        }
-    }
-
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.props.ne(&props)
-    }
-
-    fn view(&self) -> Html {
-        let node = &*self.props.node.borrow();
-        let click_cb = self.link.callback(|_| Msg::Clicked);
-        let views = match node {
-            MenuNode::Item(item) => html! {
-                <li>
-                    <a class=classes!(item.is_active.then(||"is-active")) onclick=click_cb>
-                        {&*item.item_text}
-                    </a>
-                </li>
-            },
-            MenuNode::Fold(fold) => {
-                let views = if fold.expanded {
-                    fold.nodes
-                        .iter()
-                        .map(|node| {
-                            html! {
-                                <Node node=node />
-                            }
-                        })
-                        .collect::<Html>()
+            MenuProp::Fold(node) => {
+                let is_active = node.active.then(|| "is-active");
+                let views = if node.expanded {
+                    html! {
+                        { node.children.iter().map(|child| child.view(link)).collect::<Html>() }
+                    }
                 } else {
                     html! {}
                 };
 
                 html! {
                     <li>
-                        <a class=classes!(fold.is_active.then(||"is-active")) onclick=click_cb>
-                            {&*fold.fold_text}
+                        <a class=classes!(is_active) {onclick}>
+                            {&*node.text}
                         </a>
                         <ul>
                             { views }
@@ -224,8 +50,53 @@ impl Component for Node {
                     </li>
                 }
             }
-        };
+            MenuProp::Item(node) => {
+                let is_active = node.active.then(|| "is-active");
+                html! {
+                    <li>
+                        <a class=classes!(is_active) {onclick}>
+                            {&*node.text}
+                        </a>
+                    </li>
+                }
+            }
+        }
+    }
+}
 
-        html! { {views} }
+pub struct MenuNode {
+    pub id: u32,
+    pub parent_id: u32,
+    pub text: String,
+    pub expanded: bool,
+    pub active: bool,
+    pub children: Vec<MenuProp>,
+}
+
+#[derive(Properties, PartialEq)]
+pub struct MenuProps {
+    pub nodes: Vec<MenuProp>,
+}
+
+enum Msg {
+    Clicked,
+}
+
+struct Menu;
+
+impl Component for Menu {
+    type Message = Msg;
+    type Properties = MenuProps;
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            <aside class="menu">
+                {for ctx.props().nodes.map(|node| node.view(ctx.link()))}
+            </aside>
+        }
     }
 }

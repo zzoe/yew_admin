@@ -6,9 +6,7 @@ use yew::prelude::*;
 use crate::components::menu::{Menu, MenuFold, MenuItem, MenuLabel, MenuNode};
 
 pub struct Home {
-    pub props: HomeProps,
-    pub link: ComponentLink<Self>,
-    pub labels: Rc<Vec<Rc<RefCell<MenuLabel>>>>,
+    pub menu: Rc<Vec<Rc<RefCell<MenuNode>>>>,
 }
 
 #[derive(Clone, Debug, Properties, PartialEq)]
@@ -21,66 +19,80 @@ impl Component for Home {
     type Message = ();
     type Properties = HomeProps;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let labels = Rc::new(vec![
-            Rc::new(RefCell::new(MenuLabel {
+    fn create(ctx: &Context<Self>) -> Self {
+        let menu = Rc::new(vec![
+            Rc::new(RefCell::new(MenuNode::Label(MenuLabel {
+                id: 1,
                 label_text: "label_1".to_string(),
-                expanded: false,
-                menu_list: vec![
+                expanded: true,
+                nodes: vec![
                     Rc::new(RefCell::new(MenuNode::Item(MenuItem {
+                        id: 2,
                         is_active: false,
                         item_text: "Dashboard".to_string(),
                     }))),
                     Rc::new(RefCell::new(MenuNode::Item(MenuItem {
+                        id: 3,
                         is_active: false,
                         item_text: "Customers".to_string(),
                     }))),
                 ],
-            })),
-            Rc::new(RefCell::new(MenuLabel {
+            }))),
+            Rc::new(RefCell::new(MenuNode::Label(MenuLabel {
+                id: 4,
                 label_text: "Administration".to_string(),
-                expanded: false,
-                menu_list: vec![
+                expanded: true,
+                nodes: vec![
                     Rc::new(RefCell::new(MenuNode::Item(MenuItem {
+                        id: 5,
                         is_active: false,
                         item_text: "Team Settings".to_string(),
                     }))),
                     Rc::new(RefCell::new(MenuNode::Fold(MenuFold {
+                        id: 6,
                         is_active: false,
                         expanded: true,
                         fold_text: "Manage Your Team".to_string(),
                         nodes: vec![
                             Rc::new(RefCell::new(MenuNode::Item(MenuItem {
+                                id: 7,
                                 is_active: false,
                                 item_text: "Projects".to_string(),
                             }))),
                             Rc::new(RefCell::new(MenuNode::Item(MenuItem {
+                                id: 8,
                                 is_active: false,
                                 item_text: "Members".to_string(),
                             }))),
                             Rc::new(RefCell::new(MenuNode::Fold(MenuFold {
+                                id: 9,
                                 is_active: false,
                                 expanded: true,
                                 fold_text: "Manage Your Team".to_string(),
                                 nodes: vec![
                                     Rc::new(RefCell::new(MenuNode::Item(MenuItem {
+                                        id: 10,
                                         is_active: false,
                                         item_text: "Projects".to_string(),
                                     }))),
                                     Rc::new(RefCell::new(MenuNode::Item(MenuItem {
-                                        is_active: true,
+                                        id: 11,
+                                        is_active: false,
                                         item_text: "Members".to_string(),
                                     }))),
                                     Rc::new(RefCell::new(MenuNode::Fold(MenuFold {
+                                        id: 12,
                                         is_active: false,
-                                        expanded: false,
+                                        expanded: true,
                                         fold_text: "Manage Your Team".to_string(),
                                         nodes: vec![
                                             Rc::new(RefCell::new(MenuNode::Item(MenuItem {
+                                                id: 13,
                                                 is_active: false,
                                                 item_text: "Projects".to_string(),
                                             }))),
                                             Rc::new(RefCell::new(MenuNode::Item(MenuItem {
+                                                id: 14,
                                                 is_active: false,
                                                 item_text: "Members".to_string(),
                                             }))),
@@ -91,36 +103,18 @@ impl Component for Home {
                         ],
                     }))),
                 ],
-            })),
+            }))),
         ]);
 
-        Self {
-            props,
-            link,
-            labels,
-        }
+        Self { menu }
     }
 
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
-        true
-    }
-
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        if self.props != props {
-            self.props = props;
-            true
-        } else {
-            false
-        }
-    }
-
-    fn view(&self) -> Html {
-        let labels = Rc::clone(&self.labels);
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <div class="columns">
                 <div class="column is-narrow">
                     <div class="box">
-                        <Menu labels=labels />
+                        <Menu nodes={&self.menu} />
                     </div>
                 </div>
                 <div class="column">

@@ -4,25 +4,25 @@ use yew_router::prelude::*;
 use pages::home::Home;
 use pages::settings::Settings;
 
-mod pages;
 mod components;
+mod pages;
+mod util;
 
 enum Msg {
     BuggerClick,
 }
 
 struct App {
-    link: ComponentLink<Self>,
     bugger_switch: bool,
 }
 
-#[derive(Switch, Clone, Debug)]
+#[derive(Routable, Clone, Debug, PartialEq)]
 enum AppRoute {
-    #[to = "/home"]
+    #[at("/#/home")]
     Home,
-    #[to = "/settings"]
+    #[at("/#/settings")]
     Settings,
-    #[to = "/"]
+    #[at("/")]
     Welcome,
 }
 
@@ -44,14 +44,13 @@ impl Component for App {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(ctx: &Context<Self>) -> Self {
         Self {
-            link,
             bugger_switch: false,
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::BuggerClick => {
                 self.bugger_switch = !self.bugger_switch;
@@ -60,11 +59,7 @@ impl Component for App {
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         let navbar_class = if self.bugger_switch { "is-active" } else { "" };
         let on_bugger_click = self.link.callback(|_| Msg::BuggerClick);
 
@@ -72,11 +67,11 @@ impl Component for App {
             <>
             <nav class="navbar px-6 py-5" role="navigation" aria-label="main navigation">
               <div class="navbar-brand">
-                <RouterAnchor<AppRoute> classes={"navbar-item"} route={AppRoute::Welcome}>
+                <Link<AppRoute> classes={"navbar-item"} to={AppRoute::Welcome}>
                   <img src="resource/rustacean-flat-happy.svg" width="112" height="28" />
-                </RouterAnchor<AppRoute>>
+                </Link<AppRoute>>
 
-                <a role="button" class=classes!("navbar-burger", navbar_class) onclick=on_bugger_click
+                <a role="button" class={classes!("navbar-burger", navbar_class)} {on_bugger_click}
                     aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
                   <span aria-hidden="true"></span>
                   <span aria-hidden="true"></span>
@@ -84,14 +79,14 @@ impl Component for App {
                 </a>
               </div>
 
-              <div id="navbarBasicExample" class=classes!("navbar-menu", navbar_class)>
+              <div id="navbarBasicExample" class={classes!("navbar-menu", navbar_class)}>
                 <div class="navbar-start">
-                    <RouterAnchor<AppRoute> classes={"navbar-item"} route={AppRoute::Home}>
+                    <Link<AppRoute> classes={"navbar-item"} route={AppRoute::Home}>
                         { "Home" }
-                    </RouterAnchor<AppRoute>>
-                    <RouterAnchor<AppRoute> classes={"navbar-item"} route={AppRoute::Settings}>
+                    </Link<AppRoute>>
+                    <Link<AppRoute> classes={"navbar-item"} route={AppRoute::Settings}>
                         {"Settings"}
-                    </RouterAnchor<AppRoute>>
+                    </Link<AppRoute>>
 
                   <div class="navbar-item has-dropdown is-hoverable">
                     <a class="navbar-link">
@@ -132,7 +127,9 @@ impl Component for App {
             </nav>
 
             <main>
-                <Router<AppRoute, ()> render=Router::render(switch) />
+                <BrowserRouter>
+                    <Switch<AppRoute> render={Switch::render(switch)} />
+                </BrowserRouter>
             </main>
 
             <footer class="footer px-6 py-5">

@@ -1,43 +1,20 @@
 use yew::prelude::*;
 
 pub struct Settings {
-    pub props: SettingsProps,
-    pub link: ComponentLink<Self>,
     pub label: String,
-}
-
-#[derive(Clone, Debug, Properties, PartialEq)]
-pub struct SettingsProps {
-    #[prop_or_default]
-    pub children: Children,
 }
 
 impl Component for Settings {
     type Message = ();
-    type Properties = SettingsProps;
+    type Properties = ();
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(ctx: &Context<Self>) -> Self {
         Self {
-            props,
-            link,
             label: "Settings".to_owned(),
         }
     }
 
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
-        true
-    }
-
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        if self.props != props {
-            self.props = props;
-            true
-        } else {
-            false
-        }
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <div class="columns is-expanded">
                 <div class="column is-narrow">

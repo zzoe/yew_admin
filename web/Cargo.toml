@@ -1,14 +1,12 @@
 [package]
-name = "app"
+name = "web"
 version = "0.1.0"
 authors = ["zoe <zoe211@163.com>"]
-edition = "2021"
+edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-console_error_panic_hook = "0"
-wasm-bindgen = "0"
-wee_alloc = "0"
-yew = "0"
-yew-router = "0"
+anyhow = "*"
+poem = "*"
+tokio = { version = "*", features = ["rt-multi-thread"] }
