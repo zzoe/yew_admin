@@ -6,7 +6,6 @@ use pages::settings::Settings;
 
 mod components;
 mod pages;
-mod util;
 
 enum Msg {
     BuggerClick,
@@ -16,17 +15,17 @@ struct App {
     bugger_switch: bool,
 }
 
-#[derive(Routable, Clone, Debug, PartialEq)]
+#[derive(Clone, Routable, PartialEq)]
 enum AppRoute {
-    #[at("/#/home")]
+    #[at("/home")]
     Home,
-    #[at("/#/settings")]
+    #[at("/settings")]
     Settings,
     #[at("/")]
     Welcome,
 }
 
-fn switch(routes: AppRoute) -> Html {
+fn switch(routes: &AppRoute) -> Html {
     match routes {
         AppRoute::Home => html! {
             <Home />
@@ -44,13 +43,13 @@ impl Component for App {
     type Message = Msg;
     type Properties = ();
 
-    fn create(ctx: &Context<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
             bugger_switch: false,
         }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::BuggerClick => {
                 self.bugger_switch = !self.bugger_switch;
@@ -61,17 +60,17 @@ impl Component for App {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let navbar_class = if self.bugger_switch { "is-active" } else { "" };
-        let on_bugger_click = self.link.callback(|_| Msg::BuggerClick);
+        let onclick = ctx.link().callback(|_| Msg::BuggerClick);
 
         html! {
-            <>
+            <BrowserRouter>
             <nav class="navbar px-6 py-5" role="navigation" aria-label="main navigation">
               <div class="navbar-brand">
                 <Link<AppRoute> classes={"navbar-item"} to={AppRoute::Welcome}>
                   <img src="resource/rustacean-flat-happy.svg" width="112" height="28" />
                 </Link<AppRoute>>
 
-                <a role="button" class={classes!("navbar-burger", navbar_class)} {on_bugger_click}
+                <a role="button" class={classes!("navbar-burger", navbar_class)} {onclick}
                     aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
                   <span aria-hidden="true"></span>
                   <span aria-hidden="true"></span>
@@ -81,10 +80,10 @@ impl Component for App {
 
               <div id="navbarBasicExample" class={classes!("navbar-menu", navbar_class)}>
                 <div class="navbar-start">
-                    <Link<AppRoute> classes={"navbar-item"} route={AppRoute::Home}>
+                    <Link<AppRoute> classes={"navbar-item"} to={AppRoute::Home}>
                         { "Home" }
                     </Link<AppRoute>>
-                    <Link<AppRoute> classes={"navbar-item"} route={AppRoute::Settings}>
+                    <Link<AppRoute> classes={"navbar-item"} to={AppRoute::Settings}>
                         {"Settings"}
                     </Link<AppRoute>>
 
@@ -127,9 +126,7 @@ impl Component for App {
             </nav>
 
             <main>
-                <BrowserRouter>
                     <Switch<AppRoute> render={Switch::render(switch)} />
-                </BrowserRouter>
             </main>
 
             <footer class="footer px-6 py-5">
@@ -137,11 +134,12 @@ impl Component for App {
                   <p>{"zoe © www.zoe.zz 鄂ICP备19880211号"}</p>
                 </div>
             </footer>
-            </>
+            </BrowserRouter>
         }
     }
 }
 
 fn main() {
+    wasm_logger::init(wasm_logger::Config::default());
     yew::start_app::<App>();
 }

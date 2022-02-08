@@ -8,14 +8,14 @@ impl Component for Settings {
     type Message = ();
     type Properties = ();
 
-    fn create(ctx: &Context<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
             label: "Settings".to_owned(),
         }
     }
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        html! {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        return html! {
             <div class="columns is-expanded">
                 <div class="column is-narrow">
                     <div class="box">
@@ -180,6 +180,6 @@ impl Component for Settings {
                     </div>
                 </div>
             </div>
-        }
+        };
     }
 }
