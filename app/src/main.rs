@@ -4,12 +4,11 @@ use yew_router::prelude::*;
 use pages::home::Home;
 use pages::settings::Settings;
 
-mod components;
-mod pages;
+use crate::msg::Msg;
 
-enum Msg {
-    BuggerClick,
-}
+mod components;
+mod msg;
+mod pages;
 
 struct App {
     bugger_switch: bool,
@@ -17,7 +16,7 @@ struct App {
 
 #[derive(Clone, Routable, PartialEq)]
 enum AppRoute {
-    #[at("/home")]
+    #[at("/home/:f")]
     Home,
     #[at("/settings")]
     Settings,
@@ -55,6 +54,7 @@ impl Component for App {
                 self.bugger_switch = !self.bugger_switch;
                 true
             }
+            _ => false,
         }
     }
 
