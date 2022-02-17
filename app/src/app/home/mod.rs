@@ -1,5 +1,4 @@
-use std::str::FromStr;
-
+use strum::EnumString;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
@@ -9,23 +8,12 @@ use crate::app::msg::Msg;
 
 pub mod fn1;
 
-#[derive(Clone, Routable, PartialEq)]
+#[derive(Clone, Routable, PartialEq, EnumString)]
 pub enum FnRoute {
     #[at("/home/fn1")]
     Fn1,
     #[at("/home/fn2")]
     Fn2,
-}
-
-impl FromStr for FnRoute {
-    type Err = ();
-
-    fn from_str(fn_name: &str) -> Result<Self, Self::Err> {
-        match fn_name.to_lowercase().as_str() {
-            "fn1" => Ok(FnRoute::Fn1),
-            _ => Ok(FnRoute::Fn2),
-        }
-    }
 }
 
 fn switch_menu(routes: &FnRoute) -> Html {

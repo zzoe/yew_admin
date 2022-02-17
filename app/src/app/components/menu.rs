@@ -77,29 +77,29 @@ impl Component for Menu {
     fn create(ctx: &Context<Self>) -> Self {
         add_scope!(Menu, ctx.link());
         let mock_menu = vec![
-            ("Label", 1_u32, 0_u32, "Label_1", ""),
-            ("Label", 4, 0, "Administration", ""),
-            ("Item", 2, 1, "Dashboard", "fn1"),
-            ("Item", 3, 1, "Customers", "fn2"),
-            ("Item", 5, 4, "Products", "fn3"),
-            ("Item", 6, 4, "Reports", "fn4"),
-            ("Item", 7, 4, "Settings", "fn5"),
-            ("Item", 8, 4, "Something", "fn6"),
-            ("Fold", 9, 4, "Fold_1", ""),
-            ("Item", 10, 9, "Dashboard", "fn7"),
-            ("Item", 11, 9, "Customers", "fn8"),
-            ("Item", 12, 9, "Orders", "fn9"),
-            ("Item", 13, 9, "Products", "fn10"),
-            ("Item", 14, 9, "Reports", "fn11"),
-            ("Item", 15, 9, "Settings", "fn12"),
-            ("Item", 16, 9, "Something", "fn13"),
-            ("Fold", 17, 9, "Fold_2", ""),
-            ("Item", 18, 17, "Dashboard", "fn14"),
-            ("Item", 19, 17, "Customers", "fn15"),
-            ("Item", 20, 17, "Orders", "fn16"),
-            ("Item", 21, 17, "Products", "fn17"),
-            ("Item", 22, 17, "Reports", "fn18"),
-            ("Item", 23, 17, "Settings", "fn19"),
+            ("Label", 1_u32, 0_u32, "Label_1", 0_u32),
+            ("Label", 4, 0, "Administration", 0),
+            ("Item", 2, 1, "Dashboard", 1),
+            ("Item", 3, 1, "Customers", 2),
+            ("Item", 5, 4, "Products", 3),
+            ("Item", 6, 4, "Reports", 4),
+            ("Item", 7, 4, "Settings", 5),
+            ("Item", 8, 4, "Something", 6),
+            ("Fold", 9, 4, "Fold_1", 0),
+            ("Item", 10, 9, "Dashboard", 7),
+            ("Item", 11, 9, "Customers", 8),
+            ("Item", 12, 9, "Orders", 9),
+            ("Item", 13, 9, "Products", 10),
+            ("Item", 14, 9, "Reports", 11),
+            ("Item", 15, 9, "Settings", 12),
+            ("Item", 16, 9, "Something", 13),
+            ("Fold", 17, 9, "Fold_2", 0),
+            ("Item", 18, 17, "Dashboard", 14),
+            ("Item", 19, 17, "Customers", 15),
+            ("Item", 20, 17, "Orders", 16),
+            ("Item", 21, 17, "Products", 17),
+            ("Item", 22, 17, "Reports", 18),
+            ("Item", 23, 17, "Settings", 19),
         ];
 
         let mut nodes = Arena::new();
@@ -108,7 +108,7 @@ impl Component for Menu {
         node_map.insert(0, root);
         mock_menu
             .iter()
-            .for_each(|(menu_type, id, parent_id, text, func_name)| {
+            .for_each(|(menu_type, id, parent_id, text, func_id)| {
                 node_map.insert(
                     *id,
                     nodes.new_node(MenuNode::new(
@@ -116,7 +116,7 @@ impl Component for Menu {
                         *id,
                         *parent_id,
                         text.to_string(),
-                        func_name.to_string(),
+                        format!("fn{}", *func_id),
                     )),
                 );
             });
