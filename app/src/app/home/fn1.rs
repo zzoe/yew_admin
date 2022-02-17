@@ -1,41 +1,21 @@
 use yew::prelude::*;
-use yew_router::prelude::*;
 
-use crate::components::menu::Menu;
-use crate::Msg;
+use crate::app::msg::Msg;
 
-#[derive(Clone, Routable, PartialEq)]
-pub enum MenuRoute {
-    #[at("/home/fn1")]
-    Fn1,
-    #[at("/home/fn2")]
-    Fn2,
-}
+pub struct Fn1;
 
-impl MenuRoute {
-    pub fn from_str(fn_name: impl AsRef<str>) -> Self {
-        match fn_name.as_ref().to_ascii_lowercase().as_str() {
-            "fn1" => MenuRoute::Fn1,
-            _ => MenuRoute::Fn2,
-        }
+impl Component for Fn1 {
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(ctx: &Context<Self>) -> Self {
+        add_scope!(Fn1, ctx.link());
+        Self
     }
-}
 
-fn switch_menu(routes: &MenuRoute) -> Html {
-    match routes {
-        MenuRoute::Fn1 => html! {
-            <p class="has-text-centered is-size-1">{"Fn1!"}</p>
-        },
-        MenuRoute::Fn2 => html! {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
             <div class="box">
-                <div class="tabs is-toggle">
-                    <ul>
-                        <li class="is-active"><a>{"Pictures"}</a></li>
-                        <li><a>{"Music"}</a></li>
-                        <li><a>{"Videos"}</a></li>
-                        <li><a>{"Documents"}</a></li>
-                    </ul>
-                </div>
                 <div class="field is-grouped is-grouped-multiline">
                     <p class="control has-icons-left">
                         <input class="input" type="text" placeholder="Name" />
@@ -124,32 +104,6 @@ fn switch_menu(routes: &MenuRoute) -> Html {
                     </div>
                 </nav>
             </div>
-        },
-    }
-}
-
-pub struct Home;
-
-impl Component for Home {
-    type Message = Msg;
-    type Properties = ();
-
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self
-    }
-
-    fn view(&self, _ctx: &Context<Self>) -> Html {
-        return html! {
-            <div class="columns">
-                <div class="column is-narrow">
-                    <div class="box">
-                        <Menu />
-                    </div>
-                </div>
-                <div class="column">
-                    <Switch<MenuRoute> render={Switch::render(switch_menu)} />
-                </div>
-            </div>
-        };
+        }
     }
 }

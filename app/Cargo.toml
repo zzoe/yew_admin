@@ -15,3 +15,5 @@ wasm-logger = "0"
 yew = "0"
 yew-router = "0"
 indextree = "4"
+strum = {version="0", features=["derive"]}
+#from_scope_derive = {path="../from_scope_derive"}
