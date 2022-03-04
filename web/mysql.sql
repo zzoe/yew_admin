@@ -7,11 +7,9 @@ CREATE TABLE `menu_info`
     `MENU_NAME`     VARCHAR(255) NOT NULL COMMENT '菜单名称',
     `FUNCTION_TYPE` INT          NOT NULL COMMENT '功能类型 1-crud',
     `FUNCTION_ID`   INT          NOT NULL DEFAULT 0 COMMENT '菜单功能ID',
-    `MENU_ORDER`    INT          NOT NULL COMMENT '菜单顺序',
+    `MENU_ORDER`    INT          NOT NULL DEFAULT 0 COMMENT '菜单顺序',
     PRIMARY KEY (`MENU_ID`)
 ) COMMENT = '菜单信息表';
-
-CREATE UNIQUE INDEX IDX_MENU_ORDER ON `menu_info` (`MENU_ORDER`);
 
 DROP TABLE IF EXISTS `crud_list`;
 CREATE TABLE `crud_list`

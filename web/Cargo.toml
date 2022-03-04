@@ -9,4 +9,16 @@ edition = "2018"
 [dependencies]
 anyhow = "*"
 poem = "*"
-tokio = { version = "*", features = ["rt-multi-thread"] }
+poem-openapi = { version = "*", features = ["swagger-ui"] }
+tokio = { version = "*", features = ["macros", "rt-multi-thread", "signal"] }
+tokio-stream = { version = "*" }
+sqlx = { version = "*", features = ["mysql", "runtime-tokio-rustls"] }
+tracing = { version = "*" }
+tracing-subscriber = { version = "*", features = ["local-time"] }
+tracing-appender = { version = "*" }
+serde = { version = "*", features = ["derive"] }
+serde_json = { version = "*" }
+arc-swap = { version = "*" }
+once_cell = { version = "*" }
+time = { version = "*" }
+web-derive = { path = "./web-derive" }
