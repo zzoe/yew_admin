@@ -46,7 +46,7 @@ pub struct MenuNode {
     pub text: String,
     pub expanded: bool,
     pub active: bool,
-    pub func_name: String,
+    pub page_name: String,
 }
 
 impl MenuNode {
@@ -59,7 +59,7 @@ impl MenuNode {
             text,
             expanded: true,
             active: false,
-            func_name,
+            page_name: func_name,
         }
     }
 }
@@ -108,7 +108,7 @@ impl Component for Menu {
         node_map.insert(0, root);
         mock_menu
             .iter()
-            .for_each(|(menu_type, id, parent_id, text, func_id)| {
+            .for_each(|(menu_type, id, parent_id, text, page_name)| {
                 node_map.insert(
                     *id,
                     nodes.new_node(MenuNode::new(
@@ -116,7 +116,7 @@ impl Component for Menu {
                         *id,
                         *parent_id,
                         text.to_string(),
-                        format!("fn{}", *func_id),
+                        format!("fn{}", *page_name),
                     )),
                 );
             });
@@ -159,9 +159,9 @@ impl Component for Menu {
                 clicked.expanded = !clicked.expanded;
                 self.activated = id;
 
-                if !clicked.func_name.is_empty() {
+                if !clicked.page_name.is_empty() {
                     if let Some(history) = ctx.link().history() {
-                        history.push(FnRoute::from_str(&*clicked.func_name).unwrap());
+                        history.push(FnRoute::from_str(&*clicked.page_name).unwrap());
                     }
                 }
 

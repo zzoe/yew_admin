@@ -8,6 +8,7 @@ use tracing_subscriber::fmt::time::OffsetTime;
 use crate::config::{Config, GLOBAL_CONFIG};
 
 mod config;
+pub(crate) mod error;
 mod web;
 
 fn main() {
