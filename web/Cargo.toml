@@ -12,7 +12,7 @@ poem = "*"
 poem-openapi = { version = "*", features = ["swagger-ui"] }
 tokio = { version = "*", features = ["macros", "rt-multi-thread", "signal"] }
 tokio-stream = { version = "*" }
-sqlx = { version = "*", features = ["mysql", "runtime-tokio-rustls"] }
+sqlx = { version = "*", features = ["mysql", "runtime-tokio-rustls", "time", "bigdecimal"] }
 tracing = { version = "*" }
 tracing-subscriber = { version = "*", features = ["local-time"] }
 tracing-appender = { version = "*" }
@@ -23,3 +23,4 @@ once_cell = { version = "*" }
 time = { version = "*" }
 web-derive = { path = "./web-derive" }
 thiserror = { version = "*" }
+bigdecimal = { version = "*" }
