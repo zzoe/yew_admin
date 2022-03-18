@@ -16,12 +16,12 @@ pub(crate) async fn routes() -> Result<AddDataEndpoint<TracingEndpoint<Route>, P
     drop(cfg);
 
     let hero_service = OpenApiService::new(Apis, "Hero", "1.0.0").server(address);
-    let ui = hero_service.swagger_ui();
+    let swagger_ui = hero_service.swagger_ui();
     let spec = hero_service.spec();
 
     let route = Route::new()
         .nest("/api", hero_service)
-        .nest("/ui", ui)
+        .nest("/swagger", swagger_ui)
         .at("/spec", poem::endpoint::make_sync(move |_| spec.clone()))
         .with(Tracing)
         .data(pool);

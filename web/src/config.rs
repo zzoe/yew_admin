@@ -61,7 +61,7 @@ impl Default for WebCfg {
 
 #[derive(Deserialize, Serialize)]
 pub(crate) struct MysqlCfg {
-    pub url: String,
+    pub(crate) url: String,
 }
 
 impl Default for MysqlCfg {

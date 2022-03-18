@@ -1,13 +1,11 @@
 use std::collections::HashMap;
-use std::mem::swap;
 
 use poem::error::{BadRequest, InternalServerError};
 use poem::web::Data;
 use poem::Result;
-use poem_openapi::param::Path;
 use poem_openapi::payload::Json;
-use poem_openapi::OpenApi;
-use serde_json::{Map, Value};
+use poem_openapi::{Object, OpenApi};
+use serde_json::Value;
 use sqlx::database::HasArguments;
 use sqlx::mysql::MySqlRow;
 use sqlx::query::Query;
@@ -16,9 +14,7 @@ use sqlx::types::BigDecimal;
 use sqlx::{Column, MySql, Row};
 use tokio_stream::StreamExt;
 
-use crate::error::TransError::{
-    CrudInfoNotFound, RequestMustBeJsonObject, RequestMustContain, RequestValueMustBeString,
-};
+use crate::error::TransError::{CrudInfoNotFound, RequestMustContain};
 use crate::web::api::Api;
 use crate::web::routes::DbPool;
 
@@ -43,16 +39,25 @@ const CRUD_V: &str = "v";
 // 删除条件
 const CRUD_D: &str = "d";
 
+#[derive(Object)]
+struct CRUDInfo {
+    table_name: String,
+    columns: HashMap<String, String>,
+    conditions: HashMap<String, String>,
+}
+
 #[OpenApi]
 impl CRUDApi {
-    #[oai(path = "/create/:table_name", method = "post", tag = "Api::CRUDApi")]
-    async fn create(
-        &self,
-        pool: Data<&DbPool>,
-        table_name: Path<String>,
-        req: Json<Value>,
-    ) -> Result<Json<u64>> {
-        let req = get_object(req.0)?;
+    #[oai(path = "/create", method = "post", tag = "Api::CRUDApi")]
+    async fn create(&self, pool: Data<&DbPool>, req: Json<CRUDInfo>) -> Result<Json<u64>> {
+        let table_name = req.0.table_name;
+        let req = req.0.columns;
+        if req.is_empty() {
+            return Err(BadRequest(RequestMustContain(
+                "columns to create".to_string(),
+            )));
+        }
+
         let mut sql = format!("INSERT INTO {}(", &*table_name);
         let mut values_sql = String::from("(");
         let mut placeholders = Vec::new();
@@ -74,26 +79,34 @@ impl CRUDApi {
             }
         }
 
+        if placeholders.is_empty() {
+            return Err(BadRequest(RequestMustContain(
+                "columns to create".to_string(),
+            )));
+        }
+
         values_sql.pop();
         values_sql += ")";
         sql.pop();
         sql += ") VALUES ";
         sql += &values_sql;
         let mut query = sqlx::query(&*sql);
-        query = query_bind_value(query, req, placeholders)?;
+        query = query_bind_value(query, req, placeholders);
         let res = query.execute(pool.0).await.map_err(InternalServerError)?;
 
         Ok(Json(res.rows_affected()))
     }
 
-    #[oai(path = "/read/:table_name", method = "post", tag = "Api::CRUDApi")]
-    async fn read(
-        &self,
-        pool: Data<&DbPool>,
-        table_name: Path<String>,
-        req: Json<Value>,
-    ) -> Result<Json<Value>> {
-        let req = get_object(req.0)?;
+    #[oai(path = "/read", method = "post", tag = "Api::CRUDApi")]
+    async fn read(&self, pool: Data<&DbPool>, req: Json<CRUDInfo>) -> Result<Json<Value>> {
+        let table_name = req.0.table_name;
+        let req = req.0.columns;
+        if req.is_empty() {
+            return Err(BadRequest(RequestMustContain(
+                "columns to read".to_string(),
+            )));
+        }
+
         let mut sql = String::from("SELECT ");
         let mut select_columns = HashMap::new();
         let mut placeholders = Vec::new();
@@ -140,6 +153,12 @@ impl CRUDApi {
             }
         }
 
+        if select_columns.is_empty() {
+            return Err(BadRequest(RequestMustContain(
+                "columns to read".to_string(),
+            )));
+        }
+
         if last_crud_type == CRUD_R {
             sql.pop();
             sql += " FROM ";
@@ -153,7 +172,7 @@ impl CRUDApi {
 
         let mut rows = Vec::new();
         let mut query = sqlx::query(&*sql);
-        query = query_bind_value(query, req, placeholders)?;
+        query = query_bind_value(query, req, placeholders);
         let mut stream = query.fetch(pool.0);
         while let Some(res) = stream.next().await {
             let row = res.map_err(InternalServerError)?;
@@ -170,30 +189,16 @@ impl CRUDApi {
         Ok(Json(Value::Array(rows)))
     }
 
-    #[oai(path = "/update/:table_name", method = "put", tag = "Api::CRUDApi")]
-    async fn update(
-        &self,
-        pool: Data<&DbPool>,
-        table_name: Path<String>,
-        mut req: Json<Vec<Value>>,
-    ) -> Result<Json<u64>> {
-        let mut where_req = req.pop();
-        let mut update_req = req.pop();
-        if where_req.is_none() {
+    #[oai(path = "/update", method = "put", tag = "Api::CRUDApi")]
+    async fn update(&self, pool: Data<&DbPool>, req: Json<CRUDInfo>) -> Result<Json<u64>> {
+        let table_name = req.0.table_name;
+        let update_columns = req.0.columns;
+        let conditions = req.0.conditions;
+        if update_columns.is_empty() {
             return Err(BadRequest(RequestMustContain(
                 "columns to update".to_string(),
             )));
         }
-
-        let (update_req, where_req) = if update_req.is_none() {
-            swap(&mut update_req, &mut where_req);
-            (get_object(update_req.unwrap())?, None)
-        } else {
-            (
-                get_object(update_req.unwrap())?,
-                Some(get_object(where_req.unwrap())?),
-            )
-        };
 
         let mut sql = format!("UPDATE {} SET ", &*table_name);
         let mut update_placeholders = Vec::new();
@@ -218,7 +223,7 @@ impl CRUDApi {
             }
 
             if crud_type == CRUD_U {
-                if update_req.contains_key(&column_name) {
+                if update_columns.contains_key(&column_name) {
                     sql += &column_name;
                     sql += " = ?,";
                     last_crud_type = CRUD_U;
@@ -238,24 +243,24 @@ impl CRUDApi {
                     )));
                 }
 
-                if where_req.is_none() {
+                if conditions.is_empty() {
                     break;
                 }
 
-                where_req
-                    .as_ref()
-                    .map(|req| {
-                        if req.contains_key(&column_name) {
-                            sql += &column_name;
-                            sql += " = ? AND ";
-                            where_placeholders.push((column_name, column_type));
-                        } else if column_must {
-                            return Err(BadRequest(RequestMustContain(column_name.to_string())));
-                        }
-                        Ok(())
-                    })
-                    .unwrap()?;
+                if conditions.contains_key(&column_name) {
+                    sql += &column_name;
+                    sql += " = ? AND ";
+                    where_placeholders.push((column_name, column_type));
+                } else if column_must {
+                    return Err(BadRequest(RequestMustContain(column_name.to_string())));
+                }
             }
+        }
+
+        if update_placeholders.is_empty() {
+            return Err(BadRequest(RequestMustContain(
+                "columns to update".to_string(),
+            )));
         }
 
         if last_crud_type == CRUD_U {
@@ -267,24 +272,18 @@ impl CRUDApi {
             .to_string();
 
         let mut query = sqlx::query(&*sql);
-        query = query_bind_value(query, update_req, update_placeholders)?;
-        if let Some(where_req) = where_req {
-            query = query_bind_value(query, where_req, where_placeholders)?;
-        }
+        query = query_bind_value(query, update_columns, update_placeholders);
+        query = query_bind_value(query, conditions, where_placeholders);
 
         let res = query.execute(pool.0).await.map_err(InternalServerError)?;
 
         Ok(Json(res.rows_affected()))
     }
 
-    #[oai(path = "/delete/:table_name", method = "delete", tag = "Api::CRUDApi")]
-    async fn delete(
-        &self,
-        pool: Data<&DbPool>,
-        table_name: Path<String>,
-        req: Json<Value>,
-    ) -> Result<Json<u64>> {
-        let req = get_object(req.0)?;
+    #[oai(path = "/delete", method = "delete", tag = "Api::CRUDApi")]
+    async fn delete(&self, pool: Data<&DbPool>, req: Json<CRUDInfo>) -> Result<Json<u64>> {
+        let table_name = req.0.table_name;
+        let req = req.0.conditions;
         let mut sql = format!("DELETE FROM {} WHERE ", &*table_name);
         let mut placeholders = Vec::new();
         let mut delete_stream = sqlx::query_as::<_, (String, bool, String)>(SQL_CRUD_TYPE_EQ)
@@ -310,33 +309,26 @@ impl CRUDApi {
             .to_string();
 
         let mut query = sqlx::query(&*sql);
-        query = query_bind_value(query, req, placeholders)?;
+        query = query_bind_value(query, req, placeholders);
         let res = query.execute(pool.0).await.map_err(InternalServerError)?;
 
         Ok(Json(res.rows_affected()))
     }
 }
 
-fn get_object(req: Value) -> Result<Map<String, Value>> {
-    match req {
-        Value::Object(r) => Ok(r),
-        _ => Err(BadRequest(RequestMustBeJsonObject)),
-    }
-}
-
 fn query_bind_value<'a>(
     mut query: Query<'a, MySql, <MySql as HasArguments>::Arguments>,
-    mut req: Map<String, Value>,
+    mut req: HashMap<String, String>,
     columns: Vec<(String, String)>,
-) -> Result<Query<'a, MySql, <MySql as HasArguments<'a>>::Arguments>> {
+) -> Query<'a, MySql, <MySql as HasArguments<'a>>::Arguments> {
     for (column_name, column_type) in columns {
-        match req.remove(&column_name).unwrap() {
-            Value::String(s) => query = bind_value(query, s, column_type),
-            _ => return Err(BadRequest(RequestValueMustBeString(column_name))),
+        let column_value = req.remove(&*column_name);
+        if let Some(column_value) = column_value {
+            query = bind_value(query, column_value, column_type);
         }
     }
 
-    Ok(query)
+    query
 }
 
 fn get_value(row: &MySqlRow, i: usize, value_type: &str) -> Value {

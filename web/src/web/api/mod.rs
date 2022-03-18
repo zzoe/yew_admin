@@ -12,7 +12,7 @@ pub(crate) mod menu;
 
 #[derive(Tags)]
 #[CombinedApi(Apis)]
-pub enum Api {
+pub(crate) enum Api {
     MenuApi,
     CRUDApi,
 }

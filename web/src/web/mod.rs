@@ -1,7 +1,8 @@
+use std::time::Duration;
+
 use arc_swap::access::Access;
 use poem::listener::TcpListener;
 use poem::Server;
-use time::Duration;
 
 use crate::config::Config;
 use crate::GLOBAL_CONFIG;
@@ -20,7 +21,7 @@ pub(crate) async fn start() {
 
     let address = GLOBAL_CONFIG.map(|cfg: &Config| &cfg.web.address);
     let res = Server::new(TcpListener::bind(&*address.load()))
-        .run_with_graceful_shutdown(routes, ctrl_c(), Duration::from_secs(10))
+        .run_with_graceful_shutdown(routes, ctrl_c(), Some(Duration::from_secs(10)))
         .await;
 
     if let Err(e) = res {
