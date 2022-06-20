@@ -12,6 +12,7 @@ use sqlx::query::Query;
 use sqlx::types::time::{Date, PrimitiveDateTime, Time};
 use sqlx::types::BigDecimal;
 use sqlx::{Column, MySql, Row};
+use time::format_description;
 use tokio_stream::StreamExt;
 
 use crate::error::TransError::{CrudInfoNotFound, RequestMustContain};
@@ -100,12 +101,7 @@ impl CRUDApi {
     #[oai(path = "/read", method = "post", tag = "Api::CRUDApi")]
     async fn read(&self, pool: Data<&DbPool>, req: Json<CRUDInfo>) -> Result<Json<Value>> {
         let table_name = req.0.table_name;
-        let req = req.0.columns;
-        if req.is_empty() {
-            return Err(BadRequest(RequestMustContain(
-                "columns to read".to_string(),
-            )));
-        }
+        let req = req.0.conditions;
 
         let mut sql = String::from("SELECT ");
         let mut select_columns = HashMap::new();
@@ -411,20 +407,26 @@ fn bind_value<'a>(
         "BIGINT_UNSIGNED" => query.bind(value.parse::<u64>().unwrap_or_default()),
         "BLOB" => query.bind(value),
         "BOOLEAN" => query.bind(value.parse::<bool>().unwrap_or_default()),
-        "DATE" => match Date::parse(&*value, "%F") {
-            Ok(v) => query.bind(v),
-            Err(e) => {
-                tracing::error!("{} parse Date failed: {}", value, e);
-                query
+        "DATE" => {
+            let format = format_description::parse("%F").unwrap();
+            match Date::parse(&*value, &format) {
+                Ok(v) => query.bind(v),
+                Err(e) => {
+                    tracing::error!("{} parse Date failed: {}", value, e);
+                    query
+                }
             }
-        },
-        "DATETIME" => match PrimitiveDateTime::parse(&*value, "%F %T") {
-            Ok(v) => query.bind(v),
-            Err(_) => {
-                tracing::error!("{} parse DateTime failed", value);
-                query
+        }
+        "DATETIME" => {
+            let format = format_description::parse("%F %T").unwrap();
+            match PrimitiveDateTime::parse(&*value, &format) {
+                Ok(v) => query.bind(v),
+                Err(_) => {
+                    tracing::error!("{} parse DateTime failed", value);
+                    query
+                }
             }
-        },
+        }
         "DECIMAL" => query.bind(value.parse::<BigDecimal>().unwrap_or_default()),
         "DOUBLE" => query.bind(value.parse::<f64>().unwrap_or_default()),
         "FLOAT" => query.bind(value.parse::<f32>().unwrap_or_default()),
@@ -433,13 +435,16 @@ fn bind_value<'a>(
         "SMALLINT" => query.bind(value.parse::<i16>().unwrap_or_default()),
         "SMALLINT_UNSIGNED" => query.bind(value.parse::<u16>().unwrap_or_default()),
         "TEXT" => query.bind(value),
-        "TIME" => match Time::parse(&*value, "%T") {
-            Ok(v) => query.bind(v),
-            Err(_) => {
-                tracing::error!("{} parse Time failed", value);
-                query
+        "TIME" => {
+            let format = format_description::parse("%T").unwrap();
+            match Time::parse(&*value, &format) {
+                Ok(v) => query.bind(v),
+                Err(_) => {
+                    tracing::error!("{} parse Time failed", value);
+                    query
+                }
             }
-        },
+        }
         "TINYINT" => query.bind(value.parse::<i8>().unwrap_or_default()),
         "TINYINT_UNSIGNED" => query.bind(value.parse::<u8>().unwrap_or_default()),
         _ => query,
