@@ -1,3 +1,4 @@
+use crate::app::context::{ContextExt, Module};
 use yew::prelude::*;
 
 use crate::app::msg::Msg;
@@ -9,7 +10,7 @@ impl Component for Fn1 {
     type Properties = ();
 
     fn create(ctx: &Context<Self>) -> Self {
-        add_scope!(Fn1, ctx.link());
+        ctx.insert_scope(Module::Fn1);
         Self
     }
 

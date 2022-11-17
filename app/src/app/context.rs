@@ -1,27 +1,73 @@
+use std::any::TypeId;
+use std::cell::RefCell;
 use std::collections::HashMap;
-use std::convert::AsRef;
 
-use strum::AsRefStr;
-use yew::html::Scope;
+use yew::html::{AnyScope, Scope};
+use yew::scheduler::Shared;
+use yew::Callback;
+use yew::{Component, Context};
 
-use crate::app::components::menu::Menu;
-use crate::app::home::fn1::Fn1;
-use crate::app::home::Home;
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+pub enum Module {
+    Home,
+    Menu,
+    Fn1,
+}
 
-#[derive(Clone, AsRefStr)]
-pub enum AppScope {
-    Home(Scope<Home>),
-    Menu(Scope<Menu>),
-    Fn1(Scope<Fn1>),
+#[derive(Clone)]
+pub struct AppScope {
+    module: Module,
+    scope: AnyScope,
 }
 
 impl PartialEq for AppScope {
     fn eq(&self, other: &Self) -> bool {
-        self.as_ref() == other.as_ref()
+        self.module == other.module
+    }
+}
+
+impl AppScope {
+    fn new(module: Module, scope: &Scope<impl Component>) -> Self {
+        AppScope {
+            module,
+            scope: scope.clone().into(),
+        }
     }
 }
 
 #[derive(Clone, Default, PartialEq)]
 pub struct AppContext {
-    pub scopes: HashMap<String, AppScope>,
+    pub scopes: HashMap<Module, AppScope>,
+}
+
+pub(crate) trait ContextExt {
+    fn insert_scope(&self, module: Module);
+    fn send<DST: Component>(&self, module: Module, msg: DST::Message);
+}
+
+impl<COMP: Component> ContextExt for Context<COMP> {
+    fn insert_scope(&self, module: Module) {
+        if let Some((c, _)) = self.link().context::<Shared<AppContext>>(Callback::noop()) {
+            c.borrow_mut()
+                .scopes
+                .insert(module, AppScope::new(module, self.link()));
+        }
+    }
+
+    fn send<DST: Component>(&self, module: Module, msg: DST::Message) {
+        if let Some((c, _)) = self.link().context::<Shared<AppContext>>(Callback::noop()) {
+            if let Some(s) = RefCell::borrow_mut(&c).scopes.get_mut(&module) {
+                if TypeId::of::<DST>().eq(s.scope.get_type_id()) {
+                    s.scope.clone().downcast::<DST>().send_message(msg);
+                } else {
+                    log::error!(
+                        "消息发送失败：模块{:?}的类型是{:?},不是{:?}",
+                        module,
+                        s.scope.get_type_id(),
+                        TypeId::of::<DST>()
+                    );
+                }
+            }
+        }
+    }
 }

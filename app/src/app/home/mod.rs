@@ -3,12 +3,13 @@ use yew::prelude::*;
 use yew_router::prelude::*;
 
 use crate::app::components::menu::Menu;
+use crate::app::context::{ContextExt, Module};
 use crate::app::home::fn1::Fn1;
 use crate::app::msg::Msg;
 
 pub mod fn1;
 
-#[derive(Clone, Routable, PartialEq, EnumString)]
+#[derive(Clone, Routable, PartialEq, Eq, EnumString)]
 pub enum FnRoute {
     #[at("/home/fn1")]
     Fn1,
@@ -43,7 +44,7 @@ impl Component for Home {
     type Properties = ();
 
     fn create(ctx: &Context<Self>) -> Self {
-        add_scope!(Home, ctx.link());
+        ctx.insert_scope(Module::Home);
         Self
     }
 
@@ -55,7 +56,7 @@ impl Component for Home {
     }
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
-        return html! {
+        html! {
             <div class="columns">
                 <div class="column is-narrow">
                     <div class="box">
@@ -66,6 +67,6 @@ impl Component for Home {
                     <Switch<FnRoute> render={Switch::render(switch_menu)} />
                 </div>
             </div>
-        };
+        }
     }
 }

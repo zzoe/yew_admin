@@ -15,7 +15,7 @@ impl Component for Settings {
     }
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
-        return html! {
+        html! {
             <div class="columns is-expanded">
                 <div class="column is-narrow">
                     <div class="box">
@@ -180,6 +180,6 @@ impl Component for Settings {
                     </div>
                 </div>
             </div>
-        };
+        }
     }
 }

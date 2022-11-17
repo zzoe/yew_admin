@@ -10,34 +10,6 @@ use msg::Msg;
 use crate::app::context::AppContext;
 use crate::app::route::{switch, AppRoute};
 
-macro_rules! add_scope {
-    ($i:ident, $s:expr) => {
-        use crate::app::context::{AppContext, AppScope};
-        use yew::scheduler::Shared;
-        use yew::Callback;
-
-        if let Some((c, _)) = $s.context::<Shared<AppContext>>(Callback::noop()) {
-            c.borrow_mut()
-                .scopes
-                .insert(stringify!($i).to_string(), AppScope::$i($s.clone()));
-        }
-    };
-}
-
-macro_rules! send_msg {
-    ($i:ident, $s:expr, $m:expr) => {
-        use crate::app::context::{AppContext, AppScope};
-        use yew::scheduler::Shared;
-        use yew::Callback;
-
-        if let Some((c, _)) = $s.context::<Shared<AppContext>>(Callback::noop()) {
-            if let Some(AppScope::$i(ref mut s)) = c.borrow_mut().scopes.get_mut(stringify!($i)) {
-                s.send_message($m);
-            }
-        }
-    };
-}
-
 pub mod components;
 pub mod context;
 pub mod home;

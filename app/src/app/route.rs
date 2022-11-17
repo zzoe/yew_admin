@@ -4,7 +4,7 @@ use yew_router::Routable;
 
 use crate::app::settings::Settings;
 
-#[derive(Clone, Routable, PartialEq)]
+#[derive(Clone, Routable, PartialEq, Eq)]
 pub enum AppRoute {
     #[at("/home/:fn_name")]
     Home { fn_name: String },

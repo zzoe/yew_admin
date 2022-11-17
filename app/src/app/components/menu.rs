@@ -1,14 +1,15 @@
 use std::collections::HashMap;
 use std::str::FromStr;
 
+use crate::app::context::{ContextExt, Module};
 use indextree::{Arena, NodeId};
 use yew::{classes, html, html::Scope, Component, Context, Html, MouseEvent};
 use yew_router::prelude::{History, RouterScopeExt};
 
-use crate::app::home::FnRoute;
+use crate::app::home::{FnRoute, Home};
 use crate::app::msg::Msg;
 
-#[derive(PartialEq, Clone, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub enum MenuType {
     Label,
     Fold,
@@ -38,7 +39,7 @@ impl FromStr for MenuType {
     }
 }
 
-#[derive(PartialEq, Clone, Debug, Default)]
+#[derive(PartialEq, Eq, Clone, Debug, Default)]
 pub struct MenuNode {
     pub id: u32,
     pub parent_id: u32,
@@ -75,7 +76,7 @@ impl Component for Menu {
     type Properties = ();
 
     fn create(ctx: &Context<Self>) -> Self {
-        add_scope!(Menu, ctx.link());
+        ctx.insert_scope(Module::Menu);
         let mock_menu = vec![
             ("Label", 1_u32, 0_u32, "Label_1", 0_u32),
             ("Label", 4, 0, "Administration", 0),
@@ -161,11 +162,13 @@ impl Component for Menu {
 
                 if !clicked.page_name.is_empty() {
                     if let Some(history) = ctx.link().history() {
-                        history.push(FnRoute::from_str(&*clicked.page_name).unwrap());
+                        if let Ok(fn_route) = FnRoute::from_str(&clicked.page_name) {
+                            history.push(fn_route);
+                        }
                     }
                 }
 
-                send_msg!(Home, ctx.link(), Msg::BuggerClick);
+                ctx.send::<Home>(Module::Home, Msg::BuggerClick);
 
                 true
             }
@@ -179,11 +182,11 @@ impl Component for Menu {
             None => return html! {},
         };
 
-        return html! {
+        html! {
             <aside class="menu">
                 {for root.children(&self.nodes).map(|child| self.nodes.view(child, ctx.link()))}
             </aside>
-        };
+        }
     }
 }
 
@@ -200,7 +203,7 @@ impl MenuView for Arena<MenuNode> {
 
         let id = node.id;
         let onclick = link.callback(move |_: MouseEvent| Msg::MenuClicked(id));
-        let is_active = node.active.then(|| "is-active");
+        let is_active = node.active.then_some("is-active");
 
         match node.menu_type {
             MenuType::Label => html! {
@@ -208,7 +211,7 @@ impl MenuView for Arena<MenuNode> {
                 <div class="menu-label" onclick={onclick}> {&*node.text} </div>
                 if node.expanded {
                      <ul class="menu-list">
-                        { for node_id.children(&self).map(|child| self.view(child, link)) }
+                        { for node_id.children(self).map(|child| self.view(child, link)) }
                     </ul>
                 }
                 </>
@@ -220,7 +223,7 @@ impl MenuView for Arena<MenuNode> {
                     </a>
                     <ul>
                     if node.expanded {
-                        { for node_id.children(&self).map(|child| self.view(child, link)) }
+                        { for node_id.children(self).map(|child| self.view(child, link)) }
                     }
                     </ul>
                 </li>
