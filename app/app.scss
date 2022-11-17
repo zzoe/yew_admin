@@ -1,19 +1,25 @@
 html{
   height:100%
 }
+
 body{
+  margin-left: 1.5rem;
+  margin-right: 1.5rem;
   height:100%;
   display: flex;
   flex-direction: column;
 }
+
 nav{
   flex-shrink: 0;
 }
+
 main{
   flex-grow: 1;
 }
+
 .footer{
   background-color: White;
 }
 
-@import "resource/bulma.min.css";
+@import "https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css";
