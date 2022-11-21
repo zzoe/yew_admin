@@ -117,7 +117,7 @@ impl Component for App {
                 </ContextProvider<Shared<AppContext>>>
             </main>
 
-            <footer class="footer px-6 py-5">
+            <footer class="px-6 py-5">
                 <div class="content has-text-centered">
                   <p>{"zoe © www.zoe.zz 鄂ICP备19880211号"}</p>
                 </div>
