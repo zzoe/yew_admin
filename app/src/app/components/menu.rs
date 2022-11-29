@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 use std::str::FromStr;
 
-use crate::app::context::{ContextExt, Module};
 use indextree::{Arena, NodeId};
 use yew::{classes, html, html::Scope, Component, Context, Html, MouseEvent};
-use yew_router::prelude::{History, RouterScopeExt};
+use yew_router::prelude::RouterScopeExt;
 
-use crate::app::home::{FnRoute, Home};
+use crate::app::components::FnRoute;
+use crate::app::context::{ContextExt, Module};
 use crate::app::msg::Msg;
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -47,11 +47,11 @@ pub struct MenuNode {
     pub text: String,
     pub expanded: bool,
     pub active: bool,
-    pub page_name: String,
+    pub func_id: String,
 }
 
 impl MenuNode {
-    fn new(menu_type: &str, id: u32, parent_id: u32, text: String, func_name: String) -> Self {
+    fn new(menu_type: &str, id: u32, parent_id: u32, text: String, func_id: String) -> Self {
         let menu_type = MenuType::from_str(menu_type).unwrap_or_default();
         MenuNode {
             id,
@@ -60,7 +60,7 @@ impl MenuNode {
             text,
             expanded: true,
             active: false,
-            page_name: func_name,
+            func_id,
         }
     }
 }
@@ -80,10 +80,10 @@ impl Component for Menu {
         let mock_menu = vec![
             ("Label", 1_u32, 0_u32, "Label_1", 0_u32),
             ("Label", 4, 0, "Administration", 0),
-            ("Item", 2, 1, "Dashboard", 1),
-            ("Item", 3, 1, "Customers", 2),
-            ("Item", 5, 4, "Products", 3),
-            ("Item", 6, 4, "Reports", 4),
+            ("Item", 2, 1, "Dashboard1", 1001),
+            ("Item", 3, 1, "Customers2", 1002),
+            ("Item", 5, 4, "Products1", 1001),
+            ("Item", 6, 4, "Reports2", 1002),
             ("Item", 7, 4, "Settings", 5),
             ("Item", 8, 4, "Something", 6),
             ("Fold", 9, 4, "Fold_1", 0),
@@ -109,7 +109,7 @@ impl Component for Menu {
         node_map.insert(0, root);
         mock_menu
             .iter()
-            .for_each(|(menu_type, id, parent_id, text, page_name)| {
+            .for_each(|(menu_type, id, parent_id, text, func_id)| {
                 node_map.insert(
                     *id,
                     nodes.new_node(MenuNode::new(
@@ -117,7 +117,7 @@ impl Component for Menu {
                         *id,
                         *parent_id,
                         text.to_string(),
-                        format!("fn{}", *page_name),
+                        format!("Fn{}", *func_id),
                     )),
                 );
             });
@@ -160,15 +160,13 @@ impl Component for Menu {
                 clicked.expanded = !clicked.expanded;
                 self.activated = id;
 
-                if !clicked.page_name.is_empty() {
-                    if let Some(history) = ctx.link().history() {
-                        if let Ok(fn_route) = FnRoute::from_str(&clicked.page_name) {
-                            history.push(fn_route);
+                if !clicked.func_id.is_empty() {
+                    if let Some(navigator) = ctx.link().navigator() {
+                        if let Ok(fn_route) = FnRoute::from_str(&clicked.func_id) {
+                            navigator.push(&fn_route);
                         }
                     }
                 }
-
-                ctx.send::<Home>(Module::Home, Msg::BuggerClick);
 
                 true
             }

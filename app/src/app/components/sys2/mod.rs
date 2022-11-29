@@ -1,10 +1,10 @@
 use yew::prelude::*;
 
-pub struct Settings {
+pub struct Sys2 {
     pub label: String,
 }
 
-impl Component for Settings {
+impl Component for Sys2 {
     type Message = ();
     type Properties = ();
 

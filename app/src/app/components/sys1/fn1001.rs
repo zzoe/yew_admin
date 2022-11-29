@@ -3,14 +3,14 @@ use yew::prelude::*;
 
 use crate::app::msg::Msg;
 
-pub struct Fn1;
+pub struct Fn1001;
 
-impl Component for Fn1 {
+impl Component for Fn1001 {
     type Message = Msg;
     type Properties = ();
 
     fn create(ctx: &Context<Self>) -> Self {
-        ctx.insert_scope(Module::Fn1);
+        ctx.insert_scope(Module::Fn1001);
         Self
     }
 

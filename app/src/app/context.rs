@@ -9,9 +9,10 @@ use yew::{Component, Context};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum Module {
-    Home,
+    Sys1,
     Menu,
-    Fn1,
+    Fn1001,
+    Fn1002,
 }
 
 #[derive(Clone)]
@@ -59,15 +60,10 @@ impl<COMP: Component> ContextExt for Context<COMP> {
             if let Some(s) = RefCell::borrow_mut(&c).scopes.get_mut(&module) {
                 if TypeId::of::<DST>().eq(s.scope.get_type_id()) {
                     s.scope.clone().downcast::<DST>().send_message(msg);
-                } else {
-                    log::error!(
-                        "消息发送失败：模块{:?}的类型是{:?},不是{:?}",
-                        module,
-                        s.scope.get_type_id(),
-                        TypeId::of::<DST>()
-                    );
+                    return;
                 }
             }
         }
+        log::error!("往模块{:?}发送消息失败", module);
     }
 }

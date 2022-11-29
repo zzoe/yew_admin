@@ -12,7 +12,7 @@ wasm-bindgen = "*"
 wee_alloc = "*"
 log = "*"
 wasm-logger = "*"
-yew = "*"
+yew = { version = "*", features = ["csr"] }
 yew-router = "*"
 indextree = "*"
 strum = { version = "*", features = ["derive"] }

@@ -1,29 +1,28 @@
-use crate::app::home::Home;
 use yew::{html, Html};
 use yew_router::Routable;
 
-use crate::app::settings::Settings;
+use crate::app::components::{login::Login, sys1::Sys1, sys2::Sys2};
 
 #[derive(Clone, Routable, PartialEq, Eq)]
 pub enum AppRoute {
-    #[at("/home/:fn_name")]
-    Home { fn_name: String },
-    #[at("/settings")]
-    Settings,
+    #[at("/sys1/:fn_name")]
+    Sys1 { fn_name: String },
+    #[at("/sys2/:fn_name")]
+    Sys2 { fn_name: String },
     #[at("/")]
     Welcome,
 }
 
-pub fn switch(routes: &AppRoute) -> Html {
+pub fn switch(routes: AppRoute) -> Html {
     match routes {
-        AppRoute::Home { fn_name: _ } => html! {
-            <Home />
+        AppRoute::Sys1 { fn_name: _ } => html! {
+            <Sys1 />
         },
-        AppRoute::Settings => html! {
-            <Settings />
+        AppRoute::Sys2 { fn_name: _ } => html! {
+            <Sys2 />
         },
         AppRoute::Welcome => html! {
-            <p class="has-text-centered is-size-1">{"Welcome!"}</p>
+            <Login />
         },
     }
 }

@@ -12,10 +12,8 @@ use crate::app::route::{switch, AppRoute};
 
 pub mod components;
 pub mod context;
-pub mod home;
 pub mod msg;
 mod route;
-pub mod settings;
 
 pub struct App {
     bugger_switch: bool,
@@ -53,7 +51,7 @@ impl Component for App {
             <nav class="navbar px-6 py-5" role="navigation" aria-label="main navigation">
               <div class="navbar-brand">
                 <Link<AppRoute> classes={"navbar-item"} to={AppRoute::Welcome}>
-                  <img src="/resource/rustacean-flat-happy.svg" width="112" height="28" />
+                  <img src="/resource/rustacean-flat-happy.svg" alt="" width="112" height="28" />
                 </Link<AppRoute>>
 
                 <a role="button" class={classes!("navbar-burger", navbar_class)} {onclick}
@@ -66,11 +64,11 @@ impl Component for App {
 
               <div id="navbarBasicExample" class={classes!("navbar-menu", navbar_class)}>
                 <div class="navbar-start">
-                    <Link<AppRoute> classes={"navbar-item"} to={AppRoute::Home { fn_name: "fn1".to_string() }}>
-                        { "Home" }
+                    <Link<AppRoute> classes={"navbar-item"} to={AppRoute::Sys1 { fn_name: "fn1001".to_string() }}>
+                        { "Sys1" }
                     </Link<AppRoute>>
-                    <Link<AppRoute> classes={"navbar-item"} to={AppRoute::Settings}>
-                        {"Settings"}
+                    <Link<AppRoute> classes={"navbar-item"} to={AppRoute::Sys2 { fn_name: "fn2001".to_string()}}>
+                        {"Sys2"}
                     </Link<AppRoute>>
 
                   <div class="navbar-item has-dropdown is-hoverable">
@@ -113,7 +111,7 @@ impl Component for App {
 
             <main>
                 <ContextProvider<Shared<AppContext>> context={context}>
-                    <Switch<AppRoute> render={Switch::render(switch)} />
+                    <Switch<AppRoute> render={switch} />
                 </ContextProvider<Shared<AppContext>>>
             </main>
 
