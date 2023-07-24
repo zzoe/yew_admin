@@ -1,0 +1,26 @@
+[package]
+name = "web"
+version = "0.1.0"
+authors = ["zoe <zoe211@163.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "*"
+poem = "*"
+poem-openapi = { version = "1", features = ["swagger-ui"] }
+tokio = { version = "*", features = ["macros", "rt-multi-thread", "signal"] }
+tokio-stream = { version = "*" }
+sqlx = { version = "*", features = ["mysql", "runtime-tokio-rustls", "time", "bigdecimal"] }
+tracing = { version = "*" }
+tracing-subscriber = { version = "*", features = ["local-time"] }
+tracing-appender = { version = "*" }
+serde = { version = "*", features = ["derive"] }
+serde_json = { version = "*" }
+arc-swap = { version = "*" }
+once_cell = { version = "*" }
+time = { version = "*" }
+web-derive = { path = "./web-derive" }
+thiserror = { version = "*" }
+bigdecimal = { version = "*" }
