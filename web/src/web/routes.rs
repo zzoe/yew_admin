@@ -11,7 +11,7 @@ pub(crate) type DbPool = sqlx::MySqlPool;
 
 pub(crate) async fn routes() -> Result<AddDataEndpoint<TracingEndpoint<Route>, Pool<MySql>>> {
     let cfg = GLOBAL_CONFIG.load();
-    let pool = DbPool::connect(&*cfg.mysql.url).await?;
+    let pool = DbPool::connect(&cfg.mysql.url).await?;
     let address = format!("http://{}/api", &*cfg.web.address);
     drop(cfg);
 

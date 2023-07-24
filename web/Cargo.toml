@@ -9,7 +9,7 @@ edition = "2018"
 [dependencies]
 anyhow = "*"
 poem = "*"
-poem-openapi = { version = "*", features = ["swagger-ui"] }
+poem-openapi = { version = "1", features = ["swagger-ui"] }
 tokio = { version = "*", features = ["macros", "rt-multi-thread", "signal"] }
 tokio-stream = { version = "*" }
 sqlx = { version = "*", features = ["mysql", "runtime-tokio-rustls", "time", "bigdecimal"] }
