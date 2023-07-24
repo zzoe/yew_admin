@@ -9,17 +9,12 @@ use crate::app::components::FnRoute;
 use crate::app::context::{ContextExt, Module};
 use crate::app::msg::Msg;
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(Default, PartialEq, Eq, Clone, Debug)]
 pub enum MenuType {
+    #[default]
     Label,
     Fold,
     Item,
-}
-
-impl Default for MenuType {
-    fn default() -> Self {
-        MenuType::Label
-    }
 }
 
 impl FromStr for MenuType {
