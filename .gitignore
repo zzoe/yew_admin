@@ -3,4 +3,4 @@ Cargo.lock
 target
 dist
 logs
-config.toml
+web/config.*.toml

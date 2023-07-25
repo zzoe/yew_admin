@@ -18,7 +18,7 @@ fn main() {
 }
 
 fn init_log() -> WorkerGuard {
-    //初始化配置
+    //加载配置
     config::reload();
     let cfg = GLOBAL_CONFIG.map(|cfg: &Config| &cfg.log).load();
 

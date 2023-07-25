@@ -1,5 +1,5 @@
-use std::fs::File;
 use std::sync::Arc;
+use std::{env, fs};
 
 use arc_swap::ArcSwap;
 use once_cell::sync::Lazy;
@@ -8,17 +8,21 @@ use serde::{Deserialize, Serialize};
 pub(crate) static GLOBAL_CONFIG: Lazy<ArcSwap<Config>> =
     Lazy::new(|| ArcSwap::from_pointee(Config::default()));
 
-/// 初始化配置
+/// 加载配置
 pub(crate) fn reload() {
-    if let Ok(file) = File::open("config.toml") {
-        if let Ok(c) = serde_json::from_reader::<File, Config>(file) {
+    let file = env::var("APP_ENV")
+        .map(|e| format!("config.{e}.toml"))
+        .unwrap_or("config.prd.toml".into());
+
+    if let Ok(s) = fs::read_to_string(&file) {
+        if let Ok(c) = toml::from_str(&s) {
             GLOBAL_CONFIG.store(Arc::new(c));
             return;
-        }
+        };
     }
 
-    if let Ok(c) = serde_json::to_string_pretty(&Config::default()) {
-        std::fs::write("config.toml", c).ok();
+    if let Ok(c) = toml::to_string(&Config::default()) {
+        fs::write(file, c).ok();
     }
 }
 
