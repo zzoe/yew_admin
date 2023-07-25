@@ -19,7 +19,7 @@ serde_json = { version = "*" }
 sqlx = { version = "*", features = ["mysql", "runtime-tokio-rustls", "time", "bigdecimal"] }
 thiserror = { version = "*" }
 time = { version = "*" }
-tokio = { version = "*", features = ["macros", "rt-multi-thread", "signal"] }
+tokio = { version = "*", features = ["rt-multi-thread", "signal"] }
 tokio-stream = { version = "*" }
 tracing = { version = "*" }
 tracing-appender = { version = "*" }

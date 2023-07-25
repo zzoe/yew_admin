@@ -1,6 +1,7 @@
 use arc_swap::access::Access;
 use time::format_description::well_known::Rfc3339;
 use time::UtcOffset;
+use tokio::runtime::Runtime;
 use tracing::Level;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::fmt::time::OffsetTime;
@@ -13,7 +14,7 @@ mod web;
 
 fn main() {
     let _guard = init_log();
-    let rt = tokio::runtime::Runtime::new().expect("Failed to create runtime");
+    let rt = Runtime::new().expect("Failed to create runtime");
     rt.block_on(web::start())
 }
 
