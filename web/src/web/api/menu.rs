@@ -1,3 +1,4 @@
+use crate::web::DbPool;
 use poem::error::InternalServerError;
 use poem::web::Data;
 use poem::Result;
@@ -5,8 +6,6 @@ use poem_openapi::param::Path;
 use poem_openapi::payload::{Json, PlainText};
 use poem_openapi::{ApiResponse, Object, OpenApi};
 use tokio_stream::StreamExt;
-
-use crate::web::routes::DbPool;
 
 pub(crate) struct MenuApi;
 

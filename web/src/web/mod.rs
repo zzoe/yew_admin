@@ -1,27 +1,44 @@
 use std::time::Duration;
 
-use arc_swap::access::Access;
 use poem::listener::TcpListener;
-use poem::Server;
+use poem::middleware::{AddData, Tracing};
+use poem::{EndpointExt, Route, Server};
+use poem_openapi::OpenApiService;
 
-use crate::config::Config;
+use crate::web::api::crud::CRUDApi;
+use crate::web::api::menu::MenuApi;
 use crate::GLOBAL_CONFIG;
 
 mod api;
-mod routes;
+
+pub(crate) type DbPool = sqlx::MySqlPool;
 
 pub(crate) async fn start() {
-    let routes = match routes::routes().await {
-        Ok(routes) => routes,
+    let cfg = GLOBAL_CONFIG.get().unwrap().load();
+    let pool = match DbPool::connect(&cfg.mysql.url).await {
+        Ok(p) => p,
         Err(e) => {
-            tracing::error!("Failed to load routes: {}", e);
+            tracing::error!("数据库连接失败：{e}");
             return;
         }
     };
+    // let address = address.load().deref();
+    let swagger_address = format!("http://{}/api", cfg.web.address);
 
-    let address = GLOBAL_CONFIG.map(|cfg: &Config| &cfg.web.address);
-    let res = Server::new(TcpListener::bind(&*address.load()))
-        .run_with_graceful_shutdown(routes, ctrl_c(), Some(Duration::from_secs(10)))
+    let hero_service =
+        OpenApiService::new((MenuApi, CRUDApi), "Hero", "1.0.0").server(swagger_address);
+    let swagger_ui = hero_service.swagger_ui();
+    let spec = hero_service.spec();
+
+    let route = Route::new()
+        .nest("/api", hero_service)
+        .nest("/swagger", swagger_ui)
+        .at("/spec", poem::endpoint::make_sync(move |_| spec.clone()))
+        .with(AddData::new(pool))
+        .with(Tracing);
+
+    let res = Server::new(TcpListener::bind(&cfg.web.address))
+        .run_with_graceful_shutdown(route, ctrl_c(), Some(Duration::from_secs(10)))
         .await;
 
     if let Err(e) = res {

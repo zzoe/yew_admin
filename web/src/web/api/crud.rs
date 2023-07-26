@@ -16,7 +16,7 @@ use time::format_description;
 use tokio_stream::StreamExt;
 
 use crate::error::TransError::{CrudInfoNotFound, RequestMustContain};
-use crate::web::routes::DbPool;
+use crate::web::DbPool;
 
 pub(crate) struct CRUDApi;
 

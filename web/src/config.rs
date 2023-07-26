@@ -1,28 +1,35 @@
-use std::sync::Arc;
+use std::io::ErrorKind::NotFound;
+use std::sync::{Arc, OnceLock};
 use std::{env, fs};
 
 use arc_swap::ArcSwap;
-use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 
-pub(crate) static GLOBAL_CONFIG: Lazy<ArcSwap<Config>> =
-    Lazy::new(|| ArcSwap::from_pointee(Config::default()));
+pub(crate) static GLOBAL_CONFIG: OnceLock<ArcSwap<Config>> = OnceLock::new();
 
 /// 加载配置
 pub(crate) fn reload() {
     let file = env::var("APP_ENV")
         .map(|e| format!("config.{e}.toml"))
         .unwrap_or("config.prd.toml".into());
+    let cfg = GLOBAL_CONFIG.get_or_init(|| ArcSwap::new(Arc::new(Config::default())));
 
-    if let Ok(s) = fs::read_to_string(&file) {
-        if let Ok(c) = toml::from_str(&s) {
-            GLOBAL_CONFIG.store(Arc::new(c));
-            return;
-        };
-    }
-
-    if let Ok(c) = toml::to_string(&Config::default()) {
-        fs::write(file, c).ok();
+    match fs::read_to_string(&file) {
+        Ok(s) => match toml::from_str::<Config>(&s) {
+            Ok(c) => {
+                cfg.store(Arc::new(c));
+            }
+            Err(e) => tracing::error!("{file} 配置格式有误，解析失败: {e}"),
+        },
+        Err(e) => {
+            if e.kind() == NotFound {
+                if let Ok(c) = toml::to_string(&Config::default()) {
+                    fs::write(file, c).ok();
+                }
+            } else {
+                tracing::error!("{file} 配置读取失败: {e}");
+            }
+        }
     }
 }
 
