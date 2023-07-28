@@ -6,6 +6,7 @@ use poem_openapi::param::Path;
 use poem_openapi::payload::{Json, PlainText};
 use poem_openapi::{ApiResponse, Object, OpenApi};
 use tokio_stream::StreamExt;
+use crate::web::api::ApiTags;
 
 pub(crate) struct MenuApi;
 
@@ -52,7 +53,7 @@ enum Response {
 
 #[OpenApi]
 impl MenuApi {
-    #[oai(path = "/menu", method = "post")]
+    #[oai(path = "/menu", method = "post", tag = ApiTags::Menu)]
     async fn create(&self, pool: Data<&DbPool>, menu: Json<Menu>) -> Result<Json<u64>> {
         let menu = menu.0;
         let id = sqlx::query(MENU_CREATE)
@@ -68,7 +69,7 @@ impl MenuApi {
         Ok(Json(id))
     }
 
-    #[oai(path = "/menu/:id", method = "get")]
+    #[oai(path = "/menu/:id", method = "get", tag = ApiTags::Menu)]
     async fn read(&self, pool: Data<&DbPool>, id: Path<u32>) -> Result<Response> {
         let menu: Option<Menu> = sqlx::query_as(READ_MENU)
             .bind(id.0)
@@ -85,7 +86,7 @@ impl MenuApi {
         }
     }
 
-    #[oai(path = "/menu", method = "get")]
+    #[oai(path = "/menu", method = "get", tag = ApiTags::Menu)]
     async fn read_all(&self, pool: Data<&DbPool>) -> Result<Json<Vec<Menu>>> {
         let mut menus = Vec::new();
         let mut stream = sqlx::query_as::<_, Menu>(READ_MENU_LIST).fetch(pool.0);
@@ -96,7 +97,7 @@ impl MenuApi {
         Ok(Json(menus))
     }
 
-    #[oai(path = "/menu", method = "put")]
+    #[oai(path = "/menu", method = "put", tag = ApiTags::Menu)]
     async fn update(&self, pool: Data<&DbPool>, menu_req: Json<MenuReq>) -> Result<Json<u64>> {
         let mut sql = "update menu_info set ".to_string();
         if menu_req.update_menu.is_none() {
@@ -158,7 +159,7 @@ impl MenuApi {
         Ok(Json(count))
     }
 
-    #[oai(path = "/menu", method = "delete")]
+    #[oai(path = "/menu", method = "delete", tag = ApiTags::Menu)]
     async fn delete(&self, pool: Data<&DbPool>, delete_menu: Json<MenuOpt>) -> Result<Json<u64>> {
         let mut sql = "delete from menu_info ".to_string();
         let mut and_str = " where ";

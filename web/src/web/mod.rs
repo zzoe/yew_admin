@@ -13,6 +13,7 @@ mod api;
 
 pub(crate) type DbPool = sqlx::MySqlPool;
 
+//noinspection HttpUrlsUsage
 pub(crate) async fn start() {
     let cfg = GLOBAL_CONFIG.get().unwrap().load();
     let pool = match DbPool::connect(&cfg.mysql.url).await {
@@ -22,11 +23,9 @@ pub(crate) async fn start() {
             return;
         }
     };
-    // let address = address.load().deref();
-    let swagger_address = format!("http://{}/api", cfg.web.address);
 
-    let hero_service =
-        OpenApiService::new((MenuApi, CRUDApi), "Hero", "1.0.0").server(swagger_address);
+    let hero_service = OpenApiService::new((MenuApi, CRUDApi), "Hero", "1.0.0")
+        .server(format!("http://{}/api", cfg.web.address));
     let swagger_ui = hero_service.swagger_ui();
     let spec = hero_service.spec();
 

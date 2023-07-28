@@ -16,6 +16,7 @@ use time::format_description;
 use tokio_stream::StreamExt;
 
 use crate::error::TransError::{CrudInfoNotFound, RequestMustContain};
+use crate::web::api::ApiTags;
 use crate::web::DbPool;
 
 pub(crate) struct CRUDApi;
@@ -48,7 +49,7 @@ struct CRUDInfo {
 
 #[OpenApi]
 impl CRUDApi {
-    #[oai(path = "/create", method = "post")]
+    #[oai(path = "/create", method = "post", tag = ApiTags::Crud)]
     async fn create(&self, pool: Data<&DbPool>, req: Json<CRUDInfo>) -> Result<Json<u64>> {
         let table_name = req.0.table_name;
         let req = req.0.columns;
@@ -90,14 +91,14 @@ impl CRUDApi {
         sql.pop();
         sql += ") VALUES ";
         sql += &values_sql;
-        let mut query = sqlx::query(&*sql);
+        let mut query = sqlx::query(&sql);
         query = query_bind_value(query, req, placeholders);
         let res = query.execute(pool.0).await.map_err(InternalServerError)?;
 
         Ok(Json(res.rows_affected()))
     }
 
-    #[oai(path = "/read", method = "post")]
+    #[oai(path = "/read", method = "post", tag = ApiTags::Crud)]
     async fn read(&self, pool: Data<&DbPool>, req: Json<CRUDInfo>) -> Result<Json<Value>> {
         let table_name = req.0.table_name;
         let req = req.0.conditions;
@@ -166,7 +167,7 @@ impl CRUDApi {
             .to_string();
 
         let mut rows = Vec::new();
-        let mut query = sqlx::query(&*sql);
+        let mut query = sqlx::query(&sql);
         query = query_bind_value(query, req, placeholders);
         let mut stream = query.fetch(pool.0);
         while let Some(res) = stream.next().await {
@@ -184,7 +185,7 @@ impl CRUDApi {
         Ok(Json(Value::Array(rows)))
     }
 
-    #[oai(path = "/update", method = "put")]
+    #[oai(path = "/update", method = "put", tag = ApiTags::Crud)]
     async fn update(&self, pool: Data<&DbPool>, req: Json<CRUDInfo>) -> Result<Json<u64>> {
         let table_name = req.0.table_name;
         let update_columns = req.0.columns;
@@ -266,7 +267,7 @@ impl CRUDApi {
             .trim_end_matches("AND ")
             .to_string();
 
-        let mut query = sqlx::query(&*sql);
+        let mut query = sqlx::query(&sql);
         query = query_bind_value(query, update_columns, update_placeholders);
         query = query_bind_value(query, conditions, where_placeholders);
 
@@ -275,7 +276,7 @@ impl CRUDApi {
         Ok(Json(res.rows_affected()))
     }
 
-    #[oai(path = "/delete", method = "delete")]
+    #[oai(path = "/delete", method = "delete", tag = ApiTags::Crud)]
     async fn delete(&self, pool: Data<&DbPool>, req: Json<CRUDInfo>) -> Result<Json<u64>> {
         let table_name = req.0.table_name;
         let req = req.0.conditions;
@@ -303,7 +304,7 @@ impl CRUDApi {
             .trim_end_matches("AND ")
             .to_string();
 
-        let mut query = sqlx::query(&*sql);
+        let mut query = sqlx::query(&sql);
         query = query_bind_value(query, req, placeholders);
         let res = query.execute(pool.0).await.map_err(InternalServerError)?;
 
@@ -408,7 +409,7 @@ fn bind_value<'a>(
         "BOOLEAN" => query.bind(value.parse::<bool>().unwrap_or_default()),
         "DATE" => {
             let format = format_description::parse("%F").unwrap();
-            match Date::parse(&*value, &format) {
+            match Date::parse(&value, &format) {
                 Ok(v) => query.bind(v),
                 Err(e) => {
                     tracing::error!("{} parse Date failed: {}", value, e);
@@ -418,7 +419,7 @@ fn bind_value<'a>(
         }
         "DATETIME" => {
             let format = format_description::parse("%F %T").unwrap();
-            match PrimitiveDateTime::parse(&*value, &format) {
+            match PrimitiveDateTime::parse(&value, &format) {
                 Ok(v) => query.bind(v),
                 Err(_) => {
                     tracing::error!("{} parse DateTime failed", value);
@@ -436,7 +437,7 @@ fn bind_value<'a>(
         "TEXT" => query.bind(value),
         "TIME" => {
             let format = format_description::parse("%T").unwrap();
-            match Time::parse(&*value, &format) {
+            match Time::parse(&value, &format) {
                 Ok(v) => query.bind(v),
                 Err(_) => {
                     tracing::error!("{} parse Time failed", value);
