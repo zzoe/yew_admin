@@ -47,9 +47,9 @@ struct CRUDInfo {
     conditions: HashMap<String, String>,
 }
 
-#[OpenApi]
+#[OpenApi(prefix_path="/crud", tag=ApiTags::Crud)]
 impl CRUDApi {
-    #[oai(path = "/create", method = "post", tag = ApiTags::Crud)]
+    #[oai(path = "/create", method = "post")]
     async fn create(&self, pool: Data<&DbPool>, req: Json<CRUDInfo>) -> Result<Json<u64>> {
         let table_name = req.0.table_name;
         let req = req.0.columns;
@@ -98,7 +98,7 @@ impl CRUDApi {
         Ok(Json(res.rows_affected()))
     }
 
-    #[oai(path = "/read", method = "post", tag = ApiTags::Crud)]
+    #[oai(path = "/read", method = "post")]
     async fn read(&self, pool: Data<&DbPool>, req: Json<CRUDInfo>) -> Result<Json<Value>> {
         let table_name = req.0.table_name;
         let req = req.0.conditions;
@@ -185,7 +185,7 @@ impl CRUDApi {
         Ok(Json(Value::Array(rows)))
     }
 
-    #[oai(path = "/update", method = "put", tag = ApiTags::Crud)]
+    #[oai(path = "/update", method = "put")]
     async fn update(&self, pool: Data<&DbPool>, req: Json<CRUDInfo>) -> Result<Json<u64>> {
         let table_name = req.0.table_name;
         let update_columns = req.0.columns;
@@ -276,7 +276,7 @@ impl CRUDApi {
         Ok(Json(res.rows_affected()))
     }
 
-    #[oai(path = "/delete", method = "delete", tag = ApiTags::Crud)]
+    #[oai(path = "/delete", method = "delete")]
     async fn delete(&self, pool: Data<&DbPool>, req: Json<CRUDInfo>) -> Result<Json<u64>> {
         let table_name = req.0.table_name;
         let req = req.0.conditions;
