@@ -1,7 +1,9 @@
 use std::time::Duration;
 
 use poem::listener::TcpListener;
-use poem::middleware::{AddData, Tracing};
+use poem::middleware::{
+    AddData, CatchPanic, Compression, CookieJarManager, NormalizePath, Tracing, TrailingSlash,
+};
 use poem::{EndpointExt, Route, Server};
 use poem_openapi::OpenApiService;
 
@@ -34,7 +36,11 @@ pub(crate) async fn start() {
         .nest("/swagger", swagger_ui)
         .at("/spec", poem::endpoint::make_sync(move |_| spec.clone()))
         .with(AddData::new(pool))
-        .with(Tracing);
+        .with(NormalizePath::new(TrailingSlash::Trim))
+        .with(CookieJarManager::new())
+        .with(Compression::new())
+        .with(Tracing)
+        .with(CatchPanic::new());
 
     let res = Server::new(TcpListener::bind(&cfg.web.address))
         .run_with_graceful_shutdown(route, ctrl_c(), Some(Duration::from_secs(10)))

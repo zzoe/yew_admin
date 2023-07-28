@@ -11,7 +11,7 @@ anyhow = { version = "*" }
 arc-swap = { version = "*" }
 bigdecimal = { version = "*" }
 toml = { version = "*" }
-poem = { version = "*" }
+poem = { version = "*", features = ["compression", "cookie"] }
 poem-openapi = { version = "*", features = ["swagger-ui"] }
 serde = { version = "*", features = ["derive"] }
 serde_json = { version = "*" }
